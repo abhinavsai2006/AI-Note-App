@@ -1,0 +1,92 @@
+import { User, Bell, Shield, Key, Moon, Monitor } from "lucide-react";
+
+export default function SettingsPage() {
+  return (
+    <div className="flex-1 p-8 overflow-y-auto">
+      <header className="mb-10">
+        <h1 className="text-4xl font-serif font-bold text-white mb-2">Settings</h1>
+        <p className="text-white/60">Manage your account preferences and integrations.</p>
+      </header>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Settings Navigation */}
+        <div className="w-full lg:w-64 flex flex-col gap-2">
+          {[
+            { id: "profile", label: "Profile", icon: User },
+            { id: "notifications", label: "Notifications", icon: Bell },
+            { id: "security", label: "Security", icon: Shield },
+            { id: "api-keys", label: "API Keys", icon: Key },
+            { id: "appearance", label: "Appearance", icon: Moon },
+          ].map((item, idx) => (
+            <button 
+              key={item.id} 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                idx === 0 
+                  ? "bg-primary/20 text-primary border border-primary/30" 
+                  : "text-white/60 hover:bg-surface hover:text-white border border-transparent"
+              }`}
+            >
+              <item.icon size={18} />
+              <span className="font-medium">{item.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Settings Content */}
+        <div className="flex-1">
+          <div className="glass-card p-8">
+            <h2 className="text-2xl font-bold text-white mb-6 pb-4 border-b border-surface-border">Profile Information</h2>
+            
+            <div className="flex flex-col gap-6 max-w-2xl">
+              <div className="flex items-center gap-6">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-primary to-secondary p-1">
+                  <div className="w-full h-full bg-background rounded-full flex items-center justify-center text-2xl font-bold text-white">
+                    A
+                  </div>
+                </div>
+                <div>
+                  <button className="btn-secondary text-sm">Change Avatar</button>
+                  <p className="text-xs text-white/40 mt-2">JPG, GIF or PNG. 1MB max.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-white/70">First Name</label>
+                  <input type="text" className="input-glass" defaultValue="Alex" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-white/70">Last Name</label>
+                  <input type="text" className="input-glass" defaultValue="Developer" />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-white/70">Email Address</label>
+                <input type="email" className="input-glass text-white/50" defaultValue="alex@noteflow.app" disabled />
+                <p className="text-xs text-white/40">Your email address is used for logging in and cannot be changed here.</p>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-4">
+                <label className="text-sm font-medium text-white/70">Theme Preference</label>
+                <div className="flex gap-4">
+                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-primary bg-primary/10 text-primary">
+                    <Moon size={18} /> Dark
+                  </button>
+                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-surface-border bg-surface text-white/50 hover:text-white transition-colors">
+                    <Monitor size={18} /> System
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-surface-border">
+                <button className="btn-secondary">Cancel</button>
+                <button className="btn-primary">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

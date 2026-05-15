@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run API tests (Jest -> JSON)
+        working-directory: ./apps/api
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/artifacts
+          npm ci
+          npm test -- --json --outputFile=$GITHUB_WORKSPACE/artifacts/api-test.json || true
+
+      - name: Build Web
+        working-directory: ./apps/web
+        run: |
+          npm ci
+          npm run build || true
+
+      - name: Generate HTML report
+        run: |
+          node .github/scripts/generate-test-report.js
+
+      - name: Install wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf
+
+      - name: Convert report to PDF
+        run: |
+          wkhtmltopdf artifacts/report.html artifacts/report.pdf || true
+
+      - name: Upload report PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: noteflow-ci-report
+          path: |
+            artifacts/report.pdf
+            artifacts/report.html
+            artifacts/api-test.json
