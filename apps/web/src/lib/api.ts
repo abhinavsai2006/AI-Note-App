@@ -1,5 +1,5 @@
 ﻿// API configuration with fallback for development
-// In production, NEXT_PUBLIC_API_URL should be: https://api-snowy-rho-50.vercel.app
+// In production, NEXT_PUBLIC_API_URL must be set to the backend URL.
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export function stripHtmlTags(html: string): string {
