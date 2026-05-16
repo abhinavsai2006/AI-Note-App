@@ -1,7 +1,14 @@
 // API configuration with fallback for development
 // In production, NEXT_PUBLIC_API_URL must be set to the backend URL.
 const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/$/, "");
-export const API_BASE = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
+const getApiBase = () => {
+  // Use local proxy in production to bypass CORS
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
+    return "/api/proxy";
+  }
+  return rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
+};
+export const API_BASE = getApiBase();
 
 export function stripHtmlTags(html: string): string {
   if (!html) return "";
