@@ -12,7 +12,7 @@ export async function createServer() {
 
   // Parse CORS origins from environment variable
   // Default to production frontend URL if not specified
-  const corsOriginEnv = process.env.CORS_ORIGIN || 'https://web-beta-rouge-77.vercel.app';
+  const corsOriginEnv = process.env.CORS_ORIGIN || 'https://web-beta-rouge-77.vercel.app,https://ai-note-app-taupe.vercel.app';
   const corsOrigins = corsOriginEnv
     .split(',')
     .map((origin) => origin.trim())
