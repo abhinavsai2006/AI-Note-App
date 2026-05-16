@@ -37,7 +37,32 @@ export default function InsightsPage() {
 
   useEffect(() => {
     async function load() {
-      if (!token) return;
+      // Demo data fallback
+      if (!token) {
+        setStats({
+          totalNotes: 12,
+          aiUsage: 5,
+          aiSummariesCount: 5,
+          notesThisWeek: 8,
+          mostUsedTag: "Engineering",
+          avgNotesPerDay: 1.7,
+        });
+        setWeeklyData([
+          { date: "Mon", count: 2 },
+          { date: "Tue", count: 3 },
+          { date: "Wed", count: 5 },
+          { date: "Thu", count: 2 },
+          { date: "Fri", count: 4 },
+          { date: "Sat", count: 1 },
+          { date: "Sun", count: 0 },
+        ]);
+        setRecentNotes([
+          { id: "1", title: "Product Requirements", content: "Define the core features...", updatedAt: new Date().toISOString(), summary: "Core MVP features outlined", tags: [{id: "1", name: "Engineering"}] },
+          { id: "2", title: "Q3 Marketing Strategy", content: "Focus on social media...", updatedAt: new Date().toISOString(), tags: [{id: "2", name: "Marketing"}] },
+        ]);
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const [statsData, weeklyData, notesData] = await Promise.all([

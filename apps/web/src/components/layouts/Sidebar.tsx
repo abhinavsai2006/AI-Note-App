@@ -77,7 +77,14 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
       </div>
 
       <div className="mt-auto p-6 border-t border-gray-200">
-        <button className={`w-full flex items-center gap-4 px-4 py-3 rounded text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors ${isCollapsed ? 'justify-center' : ''}`}>
+        <button 
+          onClick={() => {
+            localStorage.removeItem('token');
+            window.location.href = '/auth/login';
+          }}
+          className={`w-full flex items-center gap-4 px-4 py-3 rounded text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+          title="Logout"
+        >
           <LogOut size={20} />
           {!isCollapsed && <span className="font-medium">Logout</span>}
         </button>

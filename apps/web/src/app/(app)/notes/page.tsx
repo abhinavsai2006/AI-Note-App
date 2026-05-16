@@ -34,7 +34,16 @@ export default function NotesPage() {
 
   useEffect(() => {
     async function load() {
-      if (!token) return;
+      // Demo data fallback if no token
+      if (!token) {
+        setNotes([
+          { id: "1", title: "Product Requirements", content: "Define the core features for NoteFlow MVP...", tags: [{id: "1", name: "Engineering"}, {id: "2", name: "Planning"}], isArchived: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+          { id: "2", title: "Q3 Marketing Strategy", content: "Focus on social media presence and content...", tags: [{id: "3", name: "Marketing"}], isArchived: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+          { id: "3", title: "Investor Update", content: "Metrics and growth highlights for the last month...", tags: [{id: "4", name: "Updates"}], isArchived: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        ]);
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const [notesData, tagsData] = await Promise.all([
