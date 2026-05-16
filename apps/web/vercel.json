@@ -5,11 +5,10 @@
   "outputDirectory": ".next",
   "devCommand": "next dev",
   "installCommand": "npm install",
-  "env": [
-    "NEXT_PUBLIC_API_URL"
-  ],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@next_public_api_url"
+  },
   "regions": ["iad1"],
-  "memory": 1024,
   "functions": {
     "api/**": {
       "memory": 1024,
