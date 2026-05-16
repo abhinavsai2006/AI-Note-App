@@ -51,7 +51,7 @@ export class ShareService {
         aiSummaries: {
           orderBy: { createdAt: 'desc' },
           take: 1,
-          select: { summary: true },
+          select: { summary: true, actionItems: true, suggestedTitle: true },
         },
       },
     });
@@ -68,7 +68,14 @@ export class ShareService {
       updatedAt: note.updatedAt,
       user: note.user,
       tags: note.tags.map(({ tag }) => tag),
-      summary: note.aiSummaries[0]?.summary ?? null,
+      summary:
+        note.aiSummaries[0] !== undefined
+          ? {
+              summary: note.aiSummaries[0]?.summary ?? null,
+              action_items: note.aiSummaries[0]?.actionItems ?? [],
+              suggested_title: note.aiSummaries[0]?.suggestedTitle ?? null,
+            }
+          : null,
     };
   }
 

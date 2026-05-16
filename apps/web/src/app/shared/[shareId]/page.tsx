@@ -14,7 +14,13 @@ interface SharedNote {
   tags: Array<{ id: string; name: string }>;
   createdAt: string;
   updatedAt?: string;
-  summary?: string;
+  summary?:
+    | string
+    | {
+        summary?: string | null;
+        action_items?: string[];
+        suggested_title?: string | null;
+      };
 }
 
 export default function SharedNotePage() {
@@ -160,7 +166,26 @@ export default function SharedNotePage() {
           {note.summary && (
             <div className="mt-8 p-4 md:p-6 rounded-lg bg-primary/10 border border-primary/30">
               <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">AI Summary</h3>
-              <p className="text-gray-700">{note.summary}</p>
+              {typeof note.summary === 'string' ? (
+                <p className="text-gray-700">{note.summary}</p>
+              ) : (
+                <div>
+                  {note.summary.suggested_title && (
+                    <p className="text-sm font-semibold text-gray-800 mb-2">{note.summary.suggested_title}</p>
+                  )}
+                  {note.summary.summary && <p className="text-gray-700 mb-3">{note.summary.summary}</p>}
+                  {note.summary.action_items && note.summary.action_items.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">Action Items</h4>
+                      <ul className="list-disc list-inside text-gray-700">
+                        {note.summary.action_items.map((a, i) => (
+                          <li key={i} className="text-sm">{a}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </article>

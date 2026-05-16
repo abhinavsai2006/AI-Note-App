@@ -42,6 +42,12 @@ export class NotesController {
     return this.shareService.createShare(noteId);
   }
 
+  @Post(':noteId/generate-summary')
+  @UseGuards(JwtAuthGuard)
+  async generateSummary(@Param('noteId') noteId: string) {
+    return this.notesService.generateSummary(noteId);
+  }
+
   @Get()
   findAll(@Query('email') email?: string) {
     return this.notesService.findAll(email);

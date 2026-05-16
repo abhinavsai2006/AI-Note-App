@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class NotesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private aiService: AiService) {}
 
   async create(createNoteDto: CreateNoteDto) {
     const { title = 'Untitled Note', content = '', userEmail, userName } = createNoteDto;
@@ -63,5 +64,50 @@ export class NotesService {
 
   async remove(id: string) {
     return this.prisma.note.delete({ where: { id } });
+  }
+
+  async generateSummary(noteId: string) {
+    const note = await this.prisma.note.findUnique({ where: { id: noteId } });
+    if (!note) throw new InternalServerErrorException('Note not found');
+
+    const prompt = `You are an assistant that generates a concise JSON summary for a user note.
+Return valid JSON with keys: summary (string), action_items (array of strings), suggested_title (string).
+Do not include any extra commentary. Note content follows:\n\n${note.content}`;
+
+    let parsed: { summary?: string; action_items?: string[]; suggested_title?: string } = {};
+
+    if (!process.env.OPENROUTER_API_KEY) {
+      // Fallback simple summary when no API key is configured (useful for local testing)
+      const text = note.content || '';
+      parsed.summary = text.length > 300 ? text.slice(0, 300) + '…' : text;
+      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      parsed.action_items = lines.filter((l) => /^(-|\*|\d+\.)\s+/.test(l) || /\b(todo|fix|implement|add|update)\b/i.test(l)).slice(0, 8);
+      parsed.suggested_title = note.title || undefined;
+    } else {
+      const aiResponse = await this.aiService.create({ prompt });
+
+      try {
+        parsed = JSON.parse(aiResponse.content ?? '{}');
+      } catch {
+        parsed.summary = aiResponse.content ?? '';
+        parsed.action_items = [];
+        parsed.suggested_title = undefined;
+      }
+    }
+
+    const modelName = (typeof (global as any).aiResponse !== 'undefined' ? (global as any).aiResponse?.model : undefined) ?? process.env.OPENROUTER_MODEL ?? 'local-fallback';
+
+    const record = await this.prisma.aiSummary.create({
+      data: {
+        noteId,
+        summary: parsed.summary ?? '',
+        actionItems: parsed.action_items ?? [],
+        suggestedTitle: parsed.suggested_title ?? null,
+        tokensUsed: 0,
+        model: modelName,
+      },
+    });
+
+    return record;
   }
 }

@@ -4,6 +4,13 @@ import { PrismaClient } from '@prisma/client';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
+    // If no DATABASE_URL is configured, skip connecting so the API can run
+    // in a limited, file-backed mode (useful for local testing of shared notes).
+    if (!process.env.DATABASE_URL) {
+      console.warn('DATABASE_URL not set — skipping Prisma client connect (file-backed fallback enabled)');
+      return;
+    }
+
     try {
       await this.$connect();
     } catch (err: any) {

@@ -5,9 +5,10 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ShareModule } from '../share/share.module';
 import { AuthModule } from '../auth/auth.module';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
-  imports: [PrismaModule, ShareModule, AuthModule],
+  imports: [PrismaModule, ShareModule, AuthModule, AiModule],
   controllers: [NotesController],
   providers: [NotesService, JwtAuthGuard],
 })

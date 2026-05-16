@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy, Archive, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { callAI, createSharedNote } from "@/lib/api";
+import { callAI, createSharedNote, generateAISummary } from "@/lib/api";
 import { deleteLocalNote, getLocalNote, setNoteArchived, shareLocalNote, updateLocalNote } from "@/lib/localNotes";
 import { getSession } from "@/lib/localAuth";
 
@@ -25,6 +25,7 @@ export default function NoteEditorPage() {
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [shareUrlState, setShareUrlState] = useState<string | null>(null);
   const [isArchived, setIsArchived] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
@@ -81,23 +82,18 @@ export default function NoteEditorPage() {
     setIsGenerating(true);
     try {
       const session = getSession();
-      const response = await callAI(
-        `Create a concise summary, action items, and a suggested title for this note. Return JSON with summary, action_items, and suggested_title.
 
-Title: ${title}
-User: ${session?.name || "NoteFlow user"}
-Content: ${contentRef.current || content}`
-      );
+      // If user is authenticated, prefer server-side DB-backed summary generation
+      if (session?.token && noteId && noteId !== "new" && !notFound) {
+        const record = await generateAISummary(session.token, noteId);
 
-      const summary = typeof response?.summary === "string" ? response.summary : response?.content || "No summary generated.";
-      const actionItems = Array.isArray(response?.action_items)
-        ? response.action_items.map((item: unknown) => String(item))
-        : [];
-      const suggestedTitle = typeof response?.suggested_title === "string" ? response.suggested_title : title;
+        // record from server: { id, noteId, summary, actionItems, suggestedTitle, ... }
+        const summary = record?.summary ?? "";
+        const actionItems = Array.isArray(record?.actionItems) ? record.actionItems.map((i: unknown) => String(i)) : [];
+        const suggestedTitle = record?.suggestedTitle ?? title;
 
-      setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
-      setTitle(suggestedTitle);
-      if (noteId && noteId !== "new" && !notFound) {
+        setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
+        setTitle(suggestedTitle);
         updateLocalNote(noteId, {
           title: suggestedTitle,
           content: contentRef.current || content,
@@ -105,6 +101,28 @@ Content: ${contentRef.current || content}`
           actionItems,
           suggestedTitle,
         });
+      } else {
+        const response = await callAI(
+          `Create a concise summary, action items, and a suggested title for this note. Return JSON with summary, action_items, and suggested_title.\n\nTitle: ${title}\nUser: ${session?.name || "NoteFlow user"}\nContent: ${contentRef.current || content}`
+        );
+
+        const summary = typeof response?.summary === "string" ? response.summary : response?.content || "No summary generated.";
+        const actionItems = Array.isArray(response?.action_items)
+          ? response.action_items.map((item: unknown) => String(item))
+          : [];
+        const suggestedTitle = typeof response?.suggested_title === "string" ? response.suggested_title : title;
+
+        setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
+        setTitle(suggestedTitle);
+        if (noteId && noteId !== "new" && !notFound) {
+          updateLocalNote(noteId, {
+            title: suggestedTitle,
+            content: contentRef.current || content,
+            summary,
+            actionItems,
+            suggestedTitle,
+          });
+        }
       }
     } catch {
       setAiResult({
@@ -120,14 +138,26 @@ Content: ${contentRef.current || content}`
   const handleShare = async () => {
     setIsSharing(true);
     setShareMessage(null);
+    setShareUrlState(null);
 
     try {
       if (!noteId || noteId === "new") {
         throw new Error("Save the note before sharing it.");
       }
 
-      // Try server-backed share first (creates a publicly accessible share)
+      // If authenticated, prefer DB-backed note share via notes/:id/share
       try {
+        const session = getSession();
+        if (session?.token && noteId && noteId !== "new") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const resp = await (await import("@/lib/api")).shareNote(session.token, noteId as string);
+          if (resp?.shareUrl) {
+            setShareUrlState(resp.shareUrl);
+            setShareMessage("Share link ready.");
+            return;
+          }
+        }
+
         const payload = {
           title: title || "Untitled",
           content: contentRef.current || content,
@@ -136,13 +166,12 @@ Content: ${contentRef.current || content}`
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const resp = await createSharedNote(payload as any);
         if (resp?.shareUrl) {
-          await navigator.clipboard.writeText(resp.shareUrl);
-          setShareMessage("Share link copied to clipboard.");
+          setShareUrlState(resp.shareUrl);
+          setShareMessage("Share link ready.");
           return;
         }
       } catch {
         // server unavailable or returned error — fall back to local share
-        // console.warn('Server share failed, falling back to local share', srvErr);
       }
 
       const result = shareLocalNote(noteId);
@@ -150,8 +179,8 @@ Content: ${contentRef.current || content}`
         throw new Error("Unable to create share link.");
       }
 
-      await navigator.clipboard.writeText(result.shareUrl);
-      setShareMessage("Share link copied to clipboard.");
+      setShareUrlState(result.shareUrl);
+      setShareMessage("Share link ready.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to create share link.";
       setShareMessage(message);
@@ -246,6 +275,35 @@ Content: ${contentRef.current || content}`
           <div className="px-8 pt-4">
             <div className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-700">
               <Copy size={14} /> {shareMessage}
+            </div>
+          </div>
+        )}
+
+        {shareUrlState && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShareUrlState(null)} />
+            <div className="bg-white rounded-lg shadow-lg p-6 z-10 w-full max-w-lg">
+              <h3 className="text-lg font-bold mb-3">Share Link</h3>
+              <p className="text-sm text-gray-600 mb-4">Anyone with this link can view the note.</p>
+              <div className="flex items-center gap-2 mb-4">
+                <input readOnly value={shareUrlState} className="flex-1 p-2 border border-gray-200 rounded" />
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(shareUrlState);
+                      setShareMessage("Share link copied to clipboard.");
+                    } catch {
+                      setShareMessage("Unable to copy to clipboard.");
+                    }
+                  }}
+                  className="btn-primary px-3 py-2"
+                >
+                  Copy
+                </button>
+              </div>
+              <div className="flex justify-end">
+                <button onClick={() => setShareUrlState(null)} className="px-3 py-2 rounded bg-gray-100">Close</button>
+              </div>
             </div>
           </div>
         )}
