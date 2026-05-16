@@ -39,7 +39,12 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
   try {
     let body: any = undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      body = await req.arrayBuffer();
+      const contentType = req.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        body = JSON.stringify(await req.json());
+      } else {
+        body = await req.arrayBuffer();
+      }
     }
 
     const response = await fetch(targetUrl, {
@@ -50,9 +55,12 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
     });
 
     const data = await response.arrayBuffer();
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.set('Access-Control-Allow-Origin', '*');
+
     return new NextResponse(data, {
       status: response.status,
-      headers: response.headers,
+      headers: responseHeaders,
     });
   } catch (error) {
     console.error('Proxy error:', error);

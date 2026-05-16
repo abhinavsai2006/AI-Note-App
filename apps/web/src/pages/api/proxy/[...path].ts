@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: headers,
-      body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
+      body: req.method !== 'GET' && req.method !== 'HEAD' ? (typeof req.body === 'string' ? req.body : JSON.stringify(req.body)) : undefined,
     });
 
     const data = await response.arrayBuffer();
@@ -26,6 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     response.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });
+    res.setHeader('Access-Control-Allow-Origin', '*');
 
     res.status(response.status).send(Buffer.from(data));
   } catch (error) {
