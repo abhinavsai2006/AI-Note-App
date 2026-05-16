@@ -4,8 +4,8 @@ export default function SettingsPage() {
   return (
     <div className="flex-1 p-8 overflow-y-auto">
       <header className="mb-10">
-        <h1 className="text-4xl font-serif font-bold text-white mb-2">Settings</h1>
-        <p className="text-white/60">Manage your account preferences and integrations.</p>
+        <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">Settings</h1>
+        <p className="text-gray-600">Manage your account preferences and integrations.</p>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -20,10 +20,10 @@ export default function SettingsPage() {
           ].map((item, idx) => (
             <button 
               key={item.id} 
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-75 ${
                 idx === 0 
-                  ? "bg-primary/20 text-primary border border-primary/30" 
-                  : "text-white/60 hover:bg-surface hover:text-white border border-transparent"
+                  ? "bg-indigo-50 text-indigo-600 border border-indigo-200" 
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-transparent"
               }`}
             >
               <item.icon size={18} />
@@ -35,51 +35,51 @@ export default function SettingsPage() {
         {/* Settings Content */}
         <div className="flex-1">
           <div className="glass-card p-8">
-            <h2 className="text-2xl font-bold text-white mb-6 pb-4 border-b border-surface-border">Profile Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-200">Profile Information</h2>
             
             <div className="flex flex-col gap-6 max-w-2xl">
               <div className="flex items-center gap-6">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-primary to-secondary p-1">
-                  <div className="w-full h-full bg-background rounded-full flex items-center justify-center text-2xl font-bold text-white">
+                  <div className="w-full h-full bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-900">
                     A
                   </div>
                 </div>
                 <div>
                   <button className="btn-secondary text-sm">Change Avatar</button>
-                  <p className="text-xs text-white/40 mt-2">JPG, GIF or PNG. 1MB max.</p>
+                  <p className="text-xs text-gray-500 mt-2">JPG, GIF or PNG. 1MB max.</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-white/70">First Name</label>
+                  <label className="text-sm font-medium text-gray-700">First Name</label>
                   <input type="text" className="input-glass" defaultValue="Alex" />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-white/70">Last Name</label>
+                  <label className="text-sm font-medium text-gray-700">Last Name</label>
                   <input type="text" className="input-glass" defaultValue="Developer" />
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-white/70">Email Address</label>
-                <input type="email" className="input-glass text-white/50" defaultValue="alex@noteflow.app" disabled />
-                <p className="text-xs text-white/40">Your email address is used for logging in and cannot be changed here.</p>
+                <label className="text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" className="input-glass text-gray-500" defaultValue="alex@noteflow.app" disabled />
+                <p className="text-xs text-gray-500">Your email address is used for logging in and cannot be changed here.</p>
               </div>
 
               <div className="flex flex-col gap-2 mt-4">
-                <label className="text-sm font-medium text-white/70">Theme Preference</label>
+                <label className="text-sm font-medium text-gray-700">Theme Preference</label>
                 <div className="flex gap-4">
-                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-primary bg-primary/10 text-primary">
+                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-600">
                     <Moon size={18} /> Dark
                   </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-surface-border bg-surface text-white/50 hover:text-white transition-colors">
+                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-gray-300 bg-white text-gray-500 hover:text-gray-900 transition-colors">
                     <Monitor size={18} /> System
                   </button>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-surface-border">
+              <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
                 <button className="btn-secondary">Cancel</button>
                 <button className="btn-primary">Save Changes</button>
               </div>

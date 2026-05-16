@@ -5,9 +5,25 @@ import Link from "next/link";
 import { Plus, Search, FileText, Sparkles, Archive } from "lucide-react";
 import { getNotes, getTags } from "@/lib/api";
 
+interface Tag {
+  id: string;
+  name: string;
+}
+
+interface Note {
+  id: string;
+  title: string;
+  content: string;
+  isArchived: boolean;
+  tags: Tag[];
+  createdAt: string;
+  updatedAt: string;
+    summary?: string;
+}
+
 export default function NotesPage() {
-  const [notes, setNotes] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
@@ -43,7 +59,7 @@ export default function NotesPage() {
       {/* Sidebar Filter Panel - Hidden on mobile */}
       <div className="w-64 border-r border-surface-border bg-surface/50 p-6 flex flex-col gap-8 hidden md:flex">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-4">Sort</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Sort</h3>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as "recent" | "oldest")}
@@ -55,9 +71,9 @@ export default function NotesPage() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-4">Filters</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Filters</h3>
           <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 text-sm text-white/70 hover:text-white cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
               <input
                 type="checkbox"
                 checked={showArchived}
@@ -70,14 +86,14 @@ export default function NotesPage() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-4">Tags</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Tags</h3>
           <div className="flex flex-col gap-2">
             <button
               onClick={() => setSelectedTag("")}
               className={`text-left px-2 py-1 rounded text-sm transition-colors ${
                 selectedTag === ""
-                  ? "bg-primary/20 text-primary"
-                  : "text-white/70 hover:text-white"
+                  ? "bg-indigo-50 text-indigo-600"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               All Tags
@@ -88,8 +104,8 @@ export default function NotesPage() {
                 onClick={() => setSelectedTag(tag.id)}
                 className={`text-left px-2 py-1 rounded text-sm transition-colors ${
                   selectedTag === tag.id
-                    ? "bg-primary/20 text-primary"
-                    : "text-white/70 hover:text-white"
+                    ? "bg-indigo-50 text-indigo-600"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {tag.name}
@@ -103,13 +119,13 @@ export default function NotesPage() {
       <div className="flex-1 p-4 md:p-8 overflow-y-auto">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-white">All Notes</h1>
-            <p className="text-white/60 text-sm mt-1">Manage your notes and insights</p>
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900">All Notes</h1>
+            <p className="text-gray-600 text-sm mt-1">Manage your notes and insights</p>
           </div>
 
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
             <div className="relative group flex-1 md:flex-initial">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-primary transition-colors" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-600 transition-colors" size={18} />
               <input
                 type="text"
                 placeholder="Search notes..."
@@ -128,18 +144,18 @@ export default function NotesPage() {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 rounded-full bg-surface border border-surface-border flex items-center justify-center text-white/30 mb-4 animate-pulse">
+            <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 mb-4 animate-pulse">
               <FileText size={32} />
             </div>
-            <p className="text-white/60">Loading notes...</p>
+            <p className="text-gray-600">Loading notes...</p>
           </div>
         ) : filteredNotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 rounded-full bg-surface border border-surface-border flex items-center justify-center text-white/30 mb-4">
+            <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 mb-4">
               <FileText size={32} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">No notes found</h3>
-            <p className="text-white/50 mb-6">Try adjusting your search or filters.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No notes found</h3>
+            <p className="text-gray-600 mb-6">Try adjusting your search or filters.</p>
             <button
               onClick={() => {
                 setSearchQuery("");
@@ -156,7 +172,7 @@ export default function NotesPage() {
             {filteredNotes.map((note, idx) => (
               <div
                 key={note.id}
-                className="transition-transform duration-300 hover:-translate-y-1"
+                className="transition-transform duration-75 hover:-translate-y-1"
                 style={{ animationDelay: `${idx * 30}ms` }}
               >
                 <Link href={`/notes/${note.id}`} className="block h-full">
@@ -171,19 +187,19 @@ export default function NotesPage() {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">{note.title || "Untitled"}</h3>
-                    <p className="text-white/50 text-sm mb-6 flex-1 line-clamp-3">{note.content || "No content..."}</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{note.title || "Untitled"}</h3>
+                    <p className="text-gray-600 text-sm mb-6 flex-1 line-clamp-3">{note.content || "No content..."}</p>
 
                     <div className="flex justify-between items-center mt-auto pt-4 border-t border-surface-border/50">
                       <div className="flex gap-2 overflow-hidden flex-wrap">
-                        {note.tags?.slice(0, 2).map((tag: any) => (
-                          <span key={tag.id} className="text-xs px-2 py-1 rounded bg-surface border border-surface-border text-white/70">
+                        {note.tags?.slice(0, 2).map((tag: Tag) => (
+                          <span key={tag.id} className="text-xs px-2 py-1 rounded bg-gray-100 border border-gray-300 text-gray-700">
                             {tag.name}
                           </span>
                         ))}
-                        {note.tags?.length > 2 && <span className="text-xs px-2 py-1 text-white/50">+{note.tags.length - 2}</span>}
+                        {note.tags?.length > 2 && <span className="text-xs px-2 py-1 text-gray-600">+{note.tags.length - 2}</span>}
                       </div>
-                      <span className="text-xs text-white/40 flex-shrink-0 ml-2">
+                      <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                         {new Date(note.updatedAt).toLocaleDateString()}
                       </span>
                     </div>

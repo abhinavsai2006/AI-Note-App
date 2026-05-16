@@ -11,12 +11,12 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   }
 
   return (
-    <div className="flex flex-wrap gap-2 p-2 mb-4 bg-surface border border-surface-border rounded-xl">
+    <div className="flex flex-wrap gap-2 p-2 mb-4 bg-white border border-gray-300 rounded-lg">
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('bold') ? 'bg-primary text-white' : 'hover:bg-surface-hover text-white/70 hover:text-white'}`}
+        className={`p-2 rounded transition-colors ${editor.isActive('bold') ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
       >
         <Bold size={18} />
       </button>
@@ -24,37 +24,37 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         type="button"
         onClick={() => editor.chain().focus().toggleItalic().run()}
         disabled={!editor.can().chain().focus().toggleItalic().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('italic') ? 'bg-primary text-white' : 'hover:bg-surface-hover text-white/70 hover:text-white'}`}
+        className={`p-2 rounded transition-colors ${editor.isActive('italic') ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
       >
         <Italic size={18} />
       </button>
-      <div className="w-px h-6 bg-surface-border my-auto mx-1" />
+      <div className="w-px h-6 bg-gray-300 my-auto mx-1" />
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-primary text-white' : 'hover:bg-surface-hover text-white/70 hover:text-white'}`}
+        className={`p-2 rounded transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
       >
         <Heading2 size={18} />
       </button>
-      <div className="w-px h-6 bg-surface-border my-auto mx-1" />
+      <div className="w-px h-6 bg-gray-300 my-auto mx-1" />
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('bulletList') ? 'bg-primary text-white' : 'hover:bg-surface-hover text-white/70 hover:text-white'}`}
+        className={`p-2 rounded transition-colors ${editor.isActive('bulletList') ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
       >
         <List size={18} />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('orderedList') ? 'bg-primary text-white' : 'hover:bg-surface-hover text-white/70 hover:text-white'}`}
+        className={`p-2 rounded transition-colors ${editor.isActive('orderedList') ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
       >
         <ListOrdered size={18} />
       </button>
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className={`p-2 rounded-lg transition-colors ${editor.isActive('blockquote') ? 'bg-primary text-white' : 'hover:bg-surface-hover text-white/70 hover:text-white'}`}
+        className={`p-2 rounded transition-colors ${editor.isActive('blockquote') ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
       >
         <Quote size={18} />
       </button>

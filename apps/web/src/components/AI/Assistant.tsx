@@ -22,9 +22,10 @@ export default function Assistant() {
       });
       const data = await res.json();
       const content = data?.content ?? JSON.stringify(data?.raw ?? data ?? "No response");
-      setMessages((s) => [...s, { role: "assistant", content }]);
-    } catch (err: any) {
-      setMessages((s) => [...s, { role: "assistant", content: `Error: ${err?.message || err}` }]);
+      setMessages((s: Array<{role: string; content: string}>) => [...s, { role: "assistant", content }]);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setMessages((s: Array<{role: string; content: string}>) => [...s, { role: "assistant", content: `Error: ${errorMsg}` }]);
     } finally {
       setLoading(false);
     }
@@ -35,51 +36,51 @@ export default function Assistant() {
       <button
         aria-label="Open AI Assistant"
         onClick={() => setOpen(true)}
-        className="fixed right-6 bottom-6 z-50 bg-primary text-white p-3 rounded-full shadow-xl hover:scale-105 transition-transform"
+        className="fixed right-6 bottom-6 z-50 bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
       >
         ✦
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 md:p-8">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+          <div className="absolute inset-0 bg-black/20" onClick={() => setOpen(false)} />
 
-          <div className="relative w-full max-w-2xl md:rounded-2xl bg-surface border border-surface-border p-4 md:p-6 glass-card z-10">
+          <div className="relative w-full max-w-2xl md:rounded-lg bg-white border border-gray-300 p-4 md:p-6 shadow-lg z-10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">AI Assistant</h3>
+              <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setOpen(false)}
-                  className="text-white/60 hover:text-white p-1 rounded"
+                  className="text-gray-500 hover:text-gray-700 p-1 rounded"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            <div className="max-h-[55vh] overflow-auto mb-4 space-y-3 px-2">
+            <div className="max-h-[55vh] overflow-auto mb-4 space-y-3 px-2 border-t border-gray-200 pt-4">
               {messages.length === 0 && (
-                <div className="text-white/60">Ask the assistant to summarize notes, generate ideas, or help write content.</div>
+                <div className="text-gray-500">Ask the assistant to summarize notes, generate ideas, or help write content.</div>
               )}
               {messages.map((m, i) => (
-                <div key={i} className={`p-3 rounded-lg ${m.role === 'user' ? 'bg-white/5 self-end' : 'bg-white/3'}`}>
+                <div key={i} className={`p-3 rounded ${m.role === 'user' ? 'bg-indigo-50 ml-8 text-gray-900' : 'bg-gray-100 mr-8 text-gray-900'}`}>
                   <div className="text-sm whitespace-pre-wrap">{m.content}</div>
                 </div>
               ))}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 border-t border-gray-200 pt-4">
               <input
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Type your prompt..."
-                className="input-glass flex-1"
+                className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-gray-900"
                 onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
               />
               <button
                 onClick={send}
                 disabled={loading}
-                className="btn-primary flex items-center gap-2"
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded shadow-sm"
               >
                 {loading ? 'Thinking…' : 'Send'}
               </button>

@@ -4,6 +4,7 @@ const path = require('path');
 const artifactsDir = path.resolve(process.cwd(), 'artifacts');
 if (!fs.existsSync(artifactsDir)) fs.mkdirSync(artifactsDir, { recursive: true });
 
+
 function readJson(file) {
   try {
     const p = path.resolve(process.cwd(), file);

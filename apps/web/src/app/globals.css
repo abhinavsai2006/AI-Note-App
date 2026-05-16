@@ -3,39 +3,47 @@
 @tailwind utilities;
 
 :root {
-  --background: #0A0F1E;
-  --foreground: #F8F6FF;
+  --background: #FFFFFF;
+  --foreground: #1F2937;
+  --primary: #4F46E5;
+  --surface: #F9FAFB;
+  --surface-hover: #F3F4F6;
+  --surface-border: #E5E7EB;
+}
+
+html, body {
+  background-color: #FFFFFF;
+  color: #1F2937;
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
 }
 
 body {
   color: var(--foreground);
   background-color: var(--background);
-  background-image: radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
-                    radial-gradient(circle at 0% 50%, rgba(0, 212, 170, 0.1) 0%, transparent 50%);
-  background-attachment: fixed;
   font-family: var(--font-inter), sans-serif;
   overflow-x: hidden;
 }
 
 @layer components {
   .glass-card {
-    @apply bg-surface border border-surface-border backdrop-blur-xl shadow-glass rounded-2xl transition-all duration-300;
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
   }
   
   .glass-card:hover {
-    @apply bg-surface-hover shadow-glass-hover border-[rgba(255,255,255,0.2)];
+    @apply bg-gray-50 shadow-md;
   }
 
   .input-glass {
-    @apply bg-surface border border-surface-border rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-300;
+    @apply bg-white border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500;
   }
   
   .btn-primary {
-    @apply bg-primary hover:bg-[#6D28D9] text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(124,58,237,0.5)] hover:shadow-[0_0_25px_rgba(124,58,237,0.7)];
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded shadow-sm;
   }
 
   .btn-secondary {
-    @apply bg-surface hover:bg-surface-hover border border-surface-border text-foreground font-medium py-2 px-6 rounded-lg transition-all duration-300;
+    @apply bg-white hover:bg-gray-50 border border-gray-300 text-gray-900 font-medium py-2 px-4 rounded shadow-sm;
   }
 }
 
@@ -46,27 +54,27 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(10, 15, 30, 0.5);
+  background: #f5f5f5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: #d0d0d0;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #999;
 }
 
 /* TipTap Editor Styles */
 .ProseMirror {
-  @apply outline-none min-h-[500px];
+  @apply outline-none min-h-[500px] p-4 bg-white border border-gray-200 rounded;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(31, 41, 55, 0.4);
   pointer-events: none;
   height: 0;
 }

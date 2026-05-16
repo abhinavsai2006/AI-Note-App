@@ -8,7 +8,7 @@ import Link from "next/link";
 const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
   ssr: false,
   loading: () => (
-    <div className="glass-card p-6 text-sm text-white/60">Loading editor...</div>
+    <div className="bg-white border border-gray-300 p-6 text-sm text-gray-600">Loading editor...</div>
   ),
 });
 
@@ -43,27 +43,27 @@ export default function NoteEditorPage() {
   return (
     <div className="flex w-full h-full relative">
       {/* Main Editor Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isAiPanelOpen ? 'pr-80' : ''}`}>
-        <header className="flex justify-between items-center px-8 py-6 border-b border-surface-border">
+      <div className={`flex-1 flex flex-col transition-all duration-75 ${isAiPanelOpen ? 'pr-80' : ''}`}>
+        <header className="flex justify-between items-center px-8 py-6 border-b border-gray-200">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="p-2 rounded-full hover:bg-surface-hover text-white/50 hover:text-white transition-colors">
+            <Link href="/dashboard" className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors">
               <ArrowLeft size={20} />
             </Link>
             <input 
               type="text" 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-transparent border-none text-2xl font-bold focus:outline-none focus:ring-0 text-white w-full max-w-md placeholder:text-white/30"
+              className="bg-transparent border-none text-2xl font-bold focus:outline-none focus:ring-0 text-gray-900 w-full max-w-md placeholder:text-gray-400"
               placeholder="Note Title"
             />
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-white/40 flex items-center gap-1">
+            <span className="text-sm text-gray-500 flex items-center gap-1">
               <Clock size={14} /> Saved just now
             </span>
             <button 
               onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${isAiPanelOpen ? 'bg-primary text-white shadow-glass-hover' : 'bg-surface hover:bg-surface-hover border border-surface-border text-primary'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-75 ${isAiPanelOpen ? 'bg-indigo-600 text-white shadow' : 'bg-gray-100 hover:bg-gray-200 border border-gray-300 text-indigo-600'}`}
             >
               <Sparkles size={18} /> AI Assistant
             </button>
@@ -80,12 +80,12 @@ export default function NoteEditorPage() {
 
       {/* AI Panel */}
       <div
-        className={`w-80 h-full absolute right-0 top-0 bg-surface border-l border-surface-border backdrop-blur-3xl shadow-glass flex flex-col z-20 transition-transform duration-300 ${
+        className={`w-80 h-full absolute right-0 top-0 bg-white border-l border-gray-300 shadow-sm flex flex-col z-20 transition-transform duration-75 ${
           isAiPanelOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
         }`}
       >
-            <div className="p-6 border-b border-surface-border flex justify-between items-center">
-              <h3 className="font-bold text-lg flex items-center gap-2 text-primary">
+            <div className="p-6 border-b border-gray-300 flex justify-between items-center">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-indigo-600">
                 <Sparkles size={20} /> AI Insights
               </h3>
             </div>
@@ -93,7 +93,7 @@ export default function NoteEditorPage() {
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
               {!aiResult && !isGenerating && (
                 <div className="text-center mt-10">
-                  <p className="text-white/50 text-sm mb-6">Generate an intelligent summary, extract action items, and get title suggestions.</p>
+                  <p className="text-gray-600 text-sm mb-6">Generate an intelligent summary, extract action items, and get title suggestions.</p>
                   <button onClick={handleGenerateAI} className="btn-primary w-full flex justify-center items-center gap-2">
                     <Sparkles size={18} /> Generate Insights
                   </button>
@@ -101,7 +101,7 @@ export default function NoteEditorPage() {
               )}
 
               {isGenerating && (
-                <div className="flex flex-col items-center justify-center h-full gap-4 text-primary">
+                <div className="flex flex-col items-center justify-center h-full gap-4 text-indigo-600">
                   <Sparkles size={32} className="opacity-50 animate-spin" />
                   <p className="text-sm animate-pulse">Analyzing note...</p>
                 </div>
@@ -109,30 +109,30 @@ export default function NoteEditorPage() {
 
               {aiResult && !isGenerating && (
                 <div className="flex flex-col gap-6">
-                  <div className="glass-card p-4">
-                    <h4 className="text-xs font-bold uppercase text-white/40 mb-2 tracking-wider">Suggested Title</h4>
+                  <div className="bg-gray-50 border border-gray-300 p-4 rounded-lg shadow-sm">
+                    <h4 className="text-xs font-bold uppercase text-gray-600 mb-2 tracking-wider">Suggested Title</h4>
                     <button 
                       onClick={() => setTitle(aiResult.suggested_title)}
-                      className="text-left font-medium text-primary hover:underline"
+                      className="text-left font-medium text-indigo-600 hover:underline"
                     >
                       {aiResult.suggested_title}
                     </button>
                   </div>
 
-                  <div className="glass-card p-4">
-                    <h4 className="text-xs font-bold uppercase text-white/40 mb-2 tracking-wider">Summary</h4>
-                    <p className="text-sm text-white/80 leading-relaxed">
+                  <div className="bg-gray-50 border border-gray-300 p-4 rounded-lg shadow-sm">
+                    <h4 className="text-xs font-bold uppercase text-gray-600 mb-2 tracking-wider">Summary</h4>
+                    <p className="text-sm text-gray-700 leading-relaxed">
                       {aiResult.summary}
                     </p>
                   </div>
 
-                  <div className="glass-card p-4">
-                    <h4 className="text-xs font-bold uppercase text-white/40 mb-3 tracking-wider flex items-center gap-2">
+                  <div className="bg-gray-50 border border-gray-300 p-4 rounded-lg shadow-sm">
+                    <h4 className="text-xs font-bold uppercase text-gray-600 mb-3 tracking-wider flex items-center gap-2">
                       <CheckSquare size={14} /> Action Items
                     </h4>
                     <ul className="flex flex-col gap-2">
                       {aiResult.action_items.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-white/80">
+                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
                           <input type="checkbox" className="mt-1 rounded border-surface-border bg-background text-primary focus:ring-primary" />
                           <span>{item}</span>
                         </li>

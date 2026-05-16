@@ -9,13 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0A0F1E",
-        foreground: "#F8F6FF",
-        primary: "#7C3AED",
-        secondary: "#00D4AA",
-        surface: "rgba(255, 255, 255, 0.03)",
-        "surface-hover": "rgba(255, 255, 255, 0.08)",
-        "surface-border": "rgba(255, 255, 255, 0.1)",
+        background: "#FFFFFF",
+        foreground: "#1F2937",
+        primary: "#4F46E5",
+        secondary: "#10B981",
+        surface: "#F9FAFB",
+        "surface-hover": "#F3F4F6",
+        "surface-border": "#E5E7EB",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "sans-serif"],
@@ -27,8 +27,8 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-        'glass-hover': '0 8px 32px 0 rgba(124, 58, 237, 0.2)',
+        'glass': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'glass-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
       },
     },
   },

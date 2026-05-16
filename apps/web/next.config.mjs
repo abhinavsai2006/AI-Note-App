@@ -7,6 +7,14 @@ const nextConfig = {
 	experimental: {
 		optimizePackageImports: ["lucide-react", "date-fns"],
 	},
+	async rewrites() {
+		return [
+			{
+				source: "/api/:path*",
+				destination: "http://localhost:3001/api/:path*",
+			},
+		];
+	},
 };
 
 export default nextConfig;

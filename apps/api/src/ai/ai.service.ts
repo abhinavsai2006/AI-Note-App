@@ -53,6 +53,7 @@ export class AiService {
         model,
         messages,
         stream,
+        max_tokens: 2000,
         ...(typeof createAiDto.temperature === 'number' ? { temperature: createAiDto.temperature } : {}),
       }),
     });
