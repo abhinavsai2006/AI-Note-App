@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prebuild": "prisma generate && prisma migrate deploy",
+    "prebuild": "prisma generate && prisma db push --accept-data-loss",
     "build": "nest build",
     "postinstall": "prisma generate",
     "prestart:prod": "npx prisma migrate deploy",
