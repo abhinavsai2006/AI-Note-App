@@ -8,12 +8,6 @@
   "env": {
     "NEXT_PUBLIC_API_URL": "https://api-snowy-rho-50.vercel.app"
   },
-  "regions": ["iad1"],
-  "functions": {
-    "api/**": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  }
+  "regions": ["iad1"]
 }
 
