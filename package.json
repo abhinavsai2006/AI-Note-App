@@ -2,6 +2,12 @@
   "name": "noteflow-monorepo",
   "private": true,
   "scripts": {
-    "vercel-build": "cd apps/api && npm ci && npm run build && cd ../web && npm ci && npm run build"
+    "vercel-build": "cd apps/api && npm ci && npm run build && cd ../web && npm ci && npm run build",
+    "build": "cd apps/web && npm ci && npm run build"
+  },
+  "devDependencies": {
+    "next": "14.2.35",
+    "react": "18",
+    "react-dom": "18"
   }
 }
