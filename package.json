@@ -2,6 +2,6 @@
   "name": "noteflow-monorepo",
   "private": true,
   "scripts": {
-    "vercel-build": "cd apps/web && npm install && npm run build"
+    "vercel-build": "cd apps/api && npm ci && npm run build && cd ../web && npm ci && npm run build"
   }
 }

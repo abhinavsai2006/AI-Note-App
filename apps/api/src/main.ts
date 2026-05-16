@@ -3,15 +3,18 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import compression from 'compression';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import express from 'express';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+export async function createServer() {
+  const expressApp = express();
 
   const corsOrigins = (process.env.CORS_ORIGIN ?? '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
   app.setGlobalPrefix('api');
   app.enableCors({
     origin: corsOrigins.length > 0 ? corsOrigins : true,
@@ -29,9 +32,18 @@ async function bootstrap() {
   );
   app.enableShutdownHooks();
 
-  const port = Number(process.env.PORT ?? 3001);
-  await app.listen(port);
+  await app.init();
 
-  Logger.log(`API listening on port ${port}`, 'Bootstrap');
+  return expressApp;
 }
-bootstrap();
+
+// When run directly (node dist/main.js), start a normal server
+if (require.main === module) {
+  (async () => {
+    const expressApp = await createServer();
+    const port = Number(process.env.PORT ?? 3001);
+    expressApp.listen(port, () => {
+      Logger.log(`API listening on port ${port}`, 'Bootstrap');
+    });
+  })();
+}
