@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy, Archive, Trash2 } from "lucide-react";
+import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy, Archive, Trash2, Loader } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { callAI, createSharedNote, generateAISummary } from "@/lib/api";
@@ -15,6 +15,15 @@ const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
     <div className="bg-white border border-gray-300 p-6 text-sm text-gray-600">Loading editor...</div>
   ),
 });
+
+// Debounce utility
+const debounce = (func: (...args: any[]) => void, delay: number) => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
 
 export default function NoteEditorPage() {
   const params = useParams();
@@ -29,7 +38,9 @@ export default function NoteEditorPage() {
   const [isArchived, setIsArchived] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const contentRef = useRef("");
+  const debouncedSaveRef = useRef<(...args: any[]) => void | null>(null);
   const [aiResult, setAiResult] = useState<{ summary: string; action_items: string[]; suggested_title: string } | null>(null);
 
   useEffect(() => {
@@ -68,15 +79,25 @@ export default function NoteEditorPage() {
         content: nextContent,
         isArchived,
       });
+      setSaveStatus('saved');
     },
     [isArchived, noteId, notFound]
   );
 
+  // Initialize debounced save function
+  useEffect(() => {
+    debouncedSaveRef.current = debounce((nextTitle: string, nextContent: string) => {
+      setSaveStatus('saving');
+      persistNote(nextTitle, nextContent);
+    }, 1500); // Save after 1.5 seconds of inactivity
+  }, [persistNote]);
+
   const handleContentChange = useCallback((html: string) => {
     contentRef.current = html;
     setContent(html);
-    persistNote(title, html);
-  }, [persistNote, title]);
+    setSaveStatus('unsaved');
+    debouncedSaveRef.current?.(title, html);
+  }, [title]);
 
   const handleGenerateAI = async () => {
     setIsGenerating(true);
@@ -232,16 +253,28 @@ export default function NoteEditorPage() {
               type="text" 
               value={title}
               onChange={(e) => {
-                setTitle(e.target.value);
-                persistNote(e.target.value, contentRef.current || content);
+                const newTitle = e.target.value;
+                setTitle(newTitle);
+                setSaveStatus('unsaved');
+                debouncedSaveRef.current?.(newTitle, contentRef.current || content);
               }}
               className="bg-transparent border-none text-2xl font-bold focus:outline-none focus:ring-0 text-gray-900 w-full max-w-md placeholder:text-gray-400"
               placeholder="Note Title"
             />
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 flex items-center gap-1">
-              <Clock size={14} /> Saved just now
+            <span className={`text-sm flex items-center gap-1 transition-colors ${
+              saveStatus === 'saving' ? 'text-yellow-600' :
+              saveStatus === 'unsaved' ? 'text-red-600' :
+              'text-green-600'
+            }`}>
+              {saveStatus === 'saving' && <Loader size={14} className="animate-spin" />}
+              {saveStatus === 'saving' && 'Saving...'}
+              {saveStatus === 'unsaved' && '●'}
+              {saveStatus === 'unsaved' && 'Unsaved changes'}
+              {saveStatus === 'saved' && <Clock size={14} />}
+              {saveStatus === 'saved' && 'All changes saved'}
+            </span>
             </span>
             <button
               onClick={handleArchiveToggle}

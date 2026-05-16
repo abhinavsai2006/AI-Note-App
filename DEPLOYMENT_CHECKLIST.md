@@ -1,17 +1,84 @@
-# NoteFlow Deployment Checklist & Test Report
+# 🚀 Production Deployment Checklist - Phase 2
 
-## ✅ Submission Checklist
+## Phase 2 Status: ✅ COMPLETE
 
-This checklist ensures all PEBLO requirements are met before final submission.
+- [x] Backend CORS fixed
+- [x] Environment variables configured
+- [x] GitHub changes pushed
+- [x] Ready for Vercel deployment
 
-### 1. ✅ Authentication System
+---
+
+## Vercel Deployment Steps (10 minutes)
+
+### Backend Deployment
+
+- [ ] Go to https://vercel.com/dashboard
+- [ ] Import or select `api` project
+- [ ] Set **Root Directory**: `apps/api`
+- [ ] Add Environment Variables:
+  ```
+  DATABASE_URL=postgresql://[connection-string]
+  JWT_SECRET=[generate-secure-key]
+  CORS_ORIGIN=https://web-beta-rouge-77.vercel.app
+  NODE_ENV=production
+  ```
+- [ ] Click **Deploy**
+- [ ] Verify build succeeded (Deployments tab)
+
+### Frontend Deployment
+
+- [ ] Go to https://vercel.com/dashboard
+- [ ] Import or select `web` project
+- [ ] Set **Root Directory**: `apps/web`
+- [ ] Add Environment Variables:
+  ```
+  NEXT_PUBLIC_API_URL=https://api-snowy-rho-50.vercel.app
+  ```
+- [ ] Click **Deploy**
+- [ ] Verify build succeeded (Deployments tab)
+
+---
+
+## Production Testing
+
+### Test CORS
+```bash
+curl -X OPTIONS https://api-snowy-rho-50.vercel.app/api \
+  -H "Origin: https://web-beta-rouge-77.vercel.app" \
+  -H "Access-Control-Request-Method: POST" \
+  -v
+# Should show: Access-Control-Allow-Origin: https://web-beta-rouge-77.vercel.app
+```
+
+### Test API Connection
+Visit https://web-beta-rouge-77.vercel.app
+- Open browser console (F12)
+- Look for network requests to https://api-snowy-rho-50.vercel.app
+- Should NOT see 403 CORS errors
+- Should NOT see 404 errors
+
+### Test Authentication
+1. Try to signup at https://web-beta-rouge-77.vercel.app/auth/signup
+2. Should be able to create account
+3. Should be redirected to dashboard
+4. Should see notes page
+
+---
+
+## NoteFlow Submission Checklist (PEBLO)
+
+### ✅ Authentication System
 - [x] User signup & login endpoints implemented
 - [x] JWT token-based authentication
 - [x] Protected routes on frontend & backend
 - [x] Secure password handling with bcrypt
 - [x] Session persistence
+- [x] Refresh token mechanism
+- [x] Password strength validation
+- [x] CORS configured for security
 
-### 2. ✅ Notes Workspace
+### ✅ Notes Workspace
 - [x] Create notes endpoint (`POST /api/notes`)
 - [x] Update notes endpoint (`PATCH /api/notes/:id`)
 - [x] Delete notes endpoint (`DELETE /api/notes/:id`)
@@ -20,7 +87,7 @@ This checklist ensures all PEBLO requirements are met before final submission.
 - [x] Archive/restore functionality
 - [x] Frontend notes page with real-time sync
 
-### 3. ✅ AI Integration
+### ✅ AI Integration
 - [x] OpenRouter API integration for LLM calls
 - [x] Summarization feature (`POST /api/ai`)
 - [x] Action items extraction support
@@ -28,21 +95,21 @@ This checklist ensures all PEBLO requirements are met before final submission.
 - [x] Streaming response support
 - [x] Frontend AI assistant modal
 
-### 4. ✅ Search & Filtering
+### ✅ Search & Filtering
 - [x] Keyword search (`?search=...`)
 - [x] Filter by tags (`?tag=...`)
 - [x] Sort options (`?sort=recent|oldest`)
 - [x] Archive filter (`?archive=true|false`)
 - [x] Responsive UI with mobile support
 
-### 5. ✅ Public Share Page
+### ✅ Public Share Page
 - [x] Share endpoint (`POST /api/notes/:id/share`)
 - [x] Public note access (`GET /api/shared/:shareId`)
 - [x] Public-facing shared note page
 - [x] No login required for shared notes
 - [x] Visibility controls
 
-### 6. ✅ Productivity Insights
+### ✅ Productivity Insights
 - [x] Stats endpoint (`GET /api/insights/stats`)
 - [x] Total notes count
 - [x] Recent notes list
