@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, LayoutGrid, ShieldCheck, MessagesSquare, PenSquare, Layers3, TrendingUp } from "lucide-react";
+import { ArrowRight, Sparkles, LayoutGrid, ShieldCheck, MessagesSquare, PenSquare, Layers3 } from "lucide-react";
 
 const features = [
   {
@@ -39,14 +39,14 @@ const workflow = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-white via-indigo-50/30 to-slate-50 text-gray-900">
-      <section className="relative overflow-hidden">
+      <section className="relative flex min-h-[calc(100vh-8.5rem)] items-start overflow-hidden pt-0 lg:pt-2">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-indigo-200/40 blur-3xl" />
           <div className="absolute top-24 right-10 h-64 w-64 rounded-full bg-violet-200/40 blur-3xl" />
           <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-cyan-200/30 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-6 py-6 lg:px-8">
+        <div className="relative mx-auto w-full max-w-7xl px-6 py-0 lg:px-8 lg:py-0">
           <div className="flex items-center justify-between rounded-2xl border border-white/60 bg-white/80 px-5 py-3 shadow-sm backdrop-blur">
             <div className="flex items-center gap-3 font-serif text-xl font-bold">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white">✦</span>
@@ -67,11 +67,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid items-center gap-12 py-16 lg:grid-cols-2 lg:py-24">
+          <div className="grid items-center gap-12 py-1 lg:grid-cols-2 lg:py-4">
             <div className="max-w-2xl">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-4 py-2 text-sm font-medium text-indigo-700 shadow-sm">
-                <TrendingUp size={16} /> Built for modern teams and solo creators
-              </div>
               <h1 className="font-serif text-5xl font-bold tracking-tight text-gray-950 md:text-6xl lg:text-7xl">
                 Notes that feel <span className="text-indigo-600">beautiful</span>, organized, and intelligent.
               </h1>
