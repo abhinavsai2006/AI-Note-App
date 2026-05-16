@@ -2,14 +2,23 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
+import { ShareService } from '../share/share.service';
 
 @Controller('notes')
 export class NotesController {
-  constructor(private readonly notesService: NotesService) {}
+  constructor(
+    private readonly notesService: NotesService,
+    private readonly shareService: ShareService,
+  ) {}
 
   @Post()
   create(@Body() createNoteDto: CreateNoteDto) {
     return this.notesService.create(createNoteDto);
+  }
+
+  @Post(':noteId/share')
+  share(@Param('noteId') noteId: string) {
+    return this.shareService.createShare(noteId);
   }
 
   @Get()

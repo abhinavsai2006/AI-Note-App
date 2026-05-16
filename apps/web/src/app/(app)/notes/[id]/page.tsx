@@ -2,8 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useRef, useState } from "react";
-import { ArrowLeft, Sparkles, CheckSquare, Clock } from "lucide-react";
+import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { shareNote } from "@/lib/api";
 
 const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
   ssr: false,
@@ -13,9 +15,13 @@ const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
 });
 
 export default function NoteEditorPage() {
+  const params = useParams();
+  const noteId = params.id as string;
   const [title, setTitle] = useState("Untitled Note");
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
   const contentRef = useRef("");
   const [aiResult, setAiResult] = useState<{ summary: string, action_items: string[], suggested_title: string } | null>(null);
 
@@ -38,6 +44,32 @@ export default function NoteEditorPage() {
         suggested_title: "NoteFlow MVP Architecture & Planning"
       });
     }, 2500);
+  };
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    setShareMessage(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Please sign in to create a share link.");
+      }
+
+      if (!noteId) {
+        throw new Error("Missing note id.");
+      }
+
+      const result = await shareNote(token, noteId);
+      const shareUrl = result.shareUrl ?? `${window.location.origin}/shared/${result.shareId}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMessage("Share link copied to clipboard.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to create share link.";
+      setShareMessage(message);
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   return (
@@ -67,9 +99,23 @@ export default function NoteEditorPage() {
             >
               <Sparkles size={18} /> AI Assistant
             </button>
-            <button className="btn-primary">Share</button>
+            <button
+              onClick={handleShare}
+              disabled={isSharing}
+              className="btn-primary flex items-center gap-2 disabled:opacity-60"
+            >
+              <Link2 size={18} /> {isSharing ? "Sharing..." : "Share"}
+            </button>
           </div>
         </header>
+
+        {shareMessage && (
+          <div className="px-8 pt-4">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-700">
+              <Copy size={14} /> {shareMessage}
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-hidden">
           <div className="h-full w-full max-w-4xl mx-auto p-8">
