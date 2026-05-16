@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 export async function createServer() {
   const expressApp = express();
@@ -36,7 +37,7 @@ export async function createServer() {
   app.use(compression());
   
   // Request logging middleware
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
     res.on('finish', () => {
       const duration = Date.now() - start;
@@ -60,7 +61,7 @@ export async function createServer() {
   );
   
   // Global error handling middleware
-  app.use((err: any, req: any, res: any, next: any) => {
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) return next(err);
     
     const status = err.status || err.statusCode || 500;
