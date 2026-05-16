@@ -1,7 +1,40 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ArrowRight, Mail, Lock } from "lucide-react";
+import { getSession, signInAccount } from "@/lib/localAuth";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (getSession()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await signInAccount({ email, password });
+      router.replace("/dashboard");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to sign in.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="flex min-h-screen items-center justify-center p-4 relative overflow-hidden bg-background text-foreground">
       <div className="glass-card w-full max-w-md p-8 relative z-10">
@@ -13,12 +46,20 @@ export default function LoginPage() {
           <p className="text-gray-600 text-sm">Enter your credentials to access your workspace.</p>
         </div>
 
-        <form className="flex flex-col gap-4">
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="relative group">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-600 transition-colors" size={18} />
             <input 
               type="email" 
               placeholder="Email address" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="input-glass w-full pl-10"
               required
             />
@@ -29,6 +70,8 @@ export default function LoginPage() {
             <input 
               type="password" 
               placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="input-glass w-full pl-10"
               required
             />
@@ -42,11 +85,9 @@ export default function LoginPage() {
             <Link href="/auth/forgot-password" className="text-primary hover:underline">Forgot password?</Link>
           </div>
 
-          <Link href="/dashboard" className="w-full">
-            <button type="button" className="btn-primary w-full flex justify-center items-center gap-2">
-              Sign In <ArrowRight size={18} />
-            </button>
-          </Link>
+          <button type="submit" disabled={loading} className="btn-primary w-full flex justify-center items-center gap-2 disabled:opacity-50">
+            {loading ? "Signing in..." : "Sign In"} <ArrowRight size={18} />
+          </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">

@@ -1,4 +1,4 @@
-import { User, Bell, Shield, Moon, Monitor } from "lucide-react";
+import { User, Moon } from "lucide-react";
 
 export default function SettingsPage() {
   return (

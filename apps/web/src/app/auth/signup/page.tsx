@@ -1,10 +1,13 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ArrowRight, Mail, Lock, User } from "lucide-react";
+import { createAccount, getSession } from "@/lib/localAuth";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +17,12 @@ export default function SignupPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (getSession()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,28 +55,19 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
+      await createAccount({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setErrors({ submit: error.message || 'Signup failed' });
-        return;
-      }
 
       setSuccess(true);
       setTimeout(() => {
-        window.location.href = '/auth/login';
-      }, 2000);
+        router.replace('/dashboard');
+      }, 1000);
     } catch (error) {
-      setErrors({ submit: 'Failed to create account. Please try again.' });
+      const message = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
+      setErrors({ submit: message });
     } finally {
       setLoading(false);
     }

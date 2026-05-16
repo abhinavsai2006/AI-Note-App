@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { getSharedNote } from "@/lib/api";
 import { FileText, Share2 } from "lucide-react";
 
@@ -18,6 +18,7 @@ interface SharedNote {
 
 export default function SharedNotePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const shareId = params.shareId as string;
   const [note, setNote] = useState<SharedNote | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,22 @@ export default function SharedNotePage() {
   useEffect(() => {
     async function load() {
       if (!shareId) return;
+      const inlineTitle = searchParams.get("title") || "";
+      const inlineContent = searchParams.get("content") || "";
+
+      if (inlineTitle || inlineContent) {
+        setNote({
+          id: shareId,
+          title: inlineTitle || "Untitled Note",
+          content: inlineContent || "",
+          user: { name: searchParams.get("author") || "Anonymous" },
+          tags: [],
+          createdAt: searchParams.get("createdAt") || new Date().toISOString(),
+          summary: undefined,
+        });
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const data = await getSharedNote(shareId);
@@ -38,7 +55,7 @@ export default function SharedNotePage() {
       }
     }
     load();
-  }, [shareId]);
+  }, [searchParams, shareId]);
 
   if (loading) {
     return (

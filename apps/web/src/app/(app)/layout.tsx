@@ -1,7 +1,9 @@
 "use client";
 
 import Sidebar from "@/components/layouts/Sidebar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSession } from "@/lib/localAuth";
 
 
 export default function AppLayout({
@@ -9,7 +11,14 @@ export default function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!getSession()) {
+      router.replace('/auth/login');
+    }
+  }, [router]);
 
   return (
     <div className="flex h-screen bg-white text-gray-900 overflow-hidden">

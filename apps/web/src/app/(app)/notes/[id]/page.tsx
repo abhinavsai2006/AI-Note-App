@@ -4,8 +4,6 @@ import dynamic from "next/dynamic";
 import { useCallback, useRef, useState } from "react";
 import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { shareNote } from "@/lib/api";
 
 const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
   ssr: false,
@@ -15,8 +13,6 @@ const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
 });
 
 export default function NoteEditorPage() {
-  const params = useParams();
-  const noteId = params.id as string;
   const [title, setTitle] = useState("Untitled Note");
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -51,18 +47,14 @@ export default function NoteEditorPage() {
     setShareMessage(null);
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Please sign in to create a share link.");
-      }
+      const shareId = `note-${Date.now()}`;
+      const shareUrl = new URL(`${window.location.origin}/shared/${shareId}`);
+      shareUrl.searchParams.set("title", title);
+      shareUrl.searchParams.set("content", contentRef.current || "");
+      shareUrl.searchParams.set("author", "You");
+      shareUrl.searchParams.set("createdAt", new Date().toISOString());
 
-      if (!noteId) {
-        throw new Error("Missing note id.");
-      }
-
-      const result = await shareNote(token, noteId);
-      const shareUrl = result.shareUrl ?? `${window.location.origin}/shared/${result.shareId}`;
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(shareUrl.toString());
       setShareMessage("Share link copied to clipboard.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to create share link.";
