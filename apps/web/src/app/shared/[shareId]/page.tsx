@@ -26,7 +26,7 @@ interface SharedNote {
 export default function SharedNotePage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const shareId = params.shareId as string;
+  const shareId = params?.shareId as string;
   const [note, setNote] = useState<SharedNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +34,8 @@ export default function SharedNotePage() {
   useEffect(() => {
     async function load() {
       if (!shareId) return;
-      const inlineTitle = searchParams.get("title") || "";
-      const inlineContent = searchParams.get("content") || "";
+      const inlineTitle = searchParams?.get("title") || "";
+      const inlineContent = searchParams?.get("content") || "";
 
       const localNote = getSharedLocalNote(shareId);
       if (localNote) {
@@ -43,7 +43,7 @@ export default function SharedNotePage() {
           id: localNote.id,
           title: localNote.title,
           content: localNote.content,
-          user: { name: searchParams.get("author") || "Anonymous" },
+          user: { name: searchParams?.get("author") || "Anonymous" },
           tags: localNote.tags,
           createdAt: localNote.createdAt,
           updatedAt: localNote.updatedAt,
@@ -58,9 +58,9 @@ export default function SharedNotePage() {
           id: shareId,
           title: inlineTitle || "Untitled Note",
           content: inlineContent || "",
-          user: { name: searchParams.get("author") || "Anonymous" },
+          user: { name: searchParams?.get("author") || "Anonymous" },
           tags: [],
-          createdAt: searchParams.get("createdAt") || new Date().toISOString(),
+          createdAt: searchParams?.get("createdAt") || new Date().toISOString(),
           summary: undefined,
         });
         setLoading(false);

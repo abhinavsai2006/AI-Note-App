@@ -50,7 +50,7 @@ export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
 
         <nav className="flex flex-col gap-2">
           {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            const isActive = pathname?.startsWith(item.href) ?? false;
             return (
               <Link key={item.label} href={item.href} title={item.label}>
                 <div

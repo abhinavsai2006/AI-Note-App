@@ -17,9 +17,9 @@ const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
 });
 
 // Debounce utility
-const debounce = (func: (...args: any[]) => void, delay: number) => {
+const debounce = <Args extends readonly unknown[]>(func: (...args: Args) => void, delay: number) => {
   let timeoutId: ReturnType<typeof setTimeout>;
-  return (...args: any[]) => {
+  return (...args: Args) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), delay);
   };
@@ -28,7 +28,7 @@ const debounce = (func: (...args: any[]) => void, delay: number) => {
 export default function NoteEditorPage() {
   const params = useParams();
   const router = useRouter();
-  const noteId = params.id as string;
+  const noteId = params?.id as string;
   const [title, setTitle] = useState("Untitled Note");
   const [content, setContent] = useState("");
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function NoteEditorPage() {
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const contentRef = useRef("");
-  const debouncedSaveRef = useRef<(...args: any[]) => void | null>(null);
+  const debouncedSaveRef = useRef<((nextTitle: string, nextContent: string) => void) | null>(null);
   const [aiResult, setAiResult] = useState<{ summary: string; action_items: string[]; suggested_title: string } | null>(null);
 
   useEffect(() => {
@@ -274,7 +274,6 @@ export default function NoteEditorPage() {
               {saveStatus === 'unsaved' && 'Unsaved changes'}
               {saveStatus === 'saved' && <Clock size={14} />}
               {saveStatus === 'saved' && 'All changes saved'}
-            </span>
             </span>
             <button
               onClick={handleArchiveToggle}

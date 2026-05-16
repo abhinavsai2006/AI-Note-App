@@ -1,4 +1,4 @@
-// API configuration with fallback for development
+ï»¿// API configuration with fallback for development
 // In production, NEXT_PUBLIC_API_URL should be: https://api-snowy-rho-50.vercel.app
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -18,7 +18,7 @@ export function stripHtmlTags(html: string): string {
 export function getPreviewText(content: string, maxLength: number = 150): string {
   const plainText = stripHtmlTags(content);
   if (!plainText) return "No content yet.";
-  return plainText.length > maxLength ? `${plainText.slice(0, maxLength)}…` : plainText;
+  return plainText.length > maxLength ? `${plainText.slice(0, maxLength)}...` : plainText;
 }
 
 export type Note = {
