@@ -1,18 +1,4 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "src/serverless.ts",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 60
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "dist/main"
-    }
-  ]
+  "framework": null
 }
