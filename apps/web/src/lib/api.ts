@@ -1,6 +1,7 @@
-﻿// API configuration with fallback for development
+// API configuration with fallback for development
 // In production, NEXT_PUBLIC_API_URL must be set to the backend URL.
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/$/, "");
+export const API_BASE = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
 
 export function stripHtmlTags(html: string): string {
   if (!html) return "";
