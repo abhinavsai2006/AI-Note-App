@@ -1,13 +1,8 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "devCommand": "next dev",
-  "installCommand": "npm install",
   "env": {
     "NEXT_PUBLIC_API_URL": "https://api-snowy-rho-50.vercel.app"
-  },
-  "regions": ["iad1"]
+  }
 }
 
