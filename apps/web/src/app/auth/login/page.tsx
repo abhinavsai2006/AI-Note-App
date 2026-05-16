@@ -39,7 +39,7 @@ export default function LoginPage() {
               <input type="checkbox" className="rounded border-surface-border bg-background text-primary focus:ring-primary" />
               Remember me
             </label>
-            <a href="#" className="text-primary hover:underline">Forgot password?</a>
+            <Link href="/auth/forgot-password" className="text-primary hover:underline">Forgot password?</Link>
           </div>
 
           <Link href="/dashboard" className="w-full">
@@ -50,7 +50,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">
-          Don&apos;t have an account? <a href="#" className="text-primary hover:underline">Sign up</a>
+          Don&apos;t have an account? <Link href="/auth/signup" className="text-primary hover:underline">Sign up</Link>
         </p>
       </div>
     </main>

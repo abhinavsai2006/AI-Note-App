@@ -1,11 +1,11 @@
-import { User, Bell, Shield, Key, Moon, Monitor } from "lucide-react";
+import { User, Bell, Shield, Moon, Monitor } from "lucide-react";
 
 export default function SettingsPage() {
   return (
     <div className="flex-1 p-8 overflow-y-auto">
       <header className="mb-10">
         <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">Settings</h1>
-        <p className="text-gray-600">Manage your account preferences and integrations.</p>
+        <p className="text-gray-600">Manage your account preferences and workspace.</p>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -13,9 +13,6 @@ export default function SettingsPage() {
         <div className="w-full lg:w-64 flex flex-col gap-2">
           {[
             { id: "profile", label: "Profile", icon: User },
-            { id: "notifications", label: "Notifications", icon: Bell },
-            { id: "security", label: "Security", icon: Shield },
-            { id: "api-keys", label: "API Keys", icon: Key },
             { id: "appearance", label: "Appearance", icon: Moon },
           ].map((item, idx) => (
             <button 
@@ -35,7 +32,7 @@ export default function SettingsPage() {
         {/* Settings Content */}
         <div className="flex-1">
           <div className="glass-card p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-200">Profile Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-200">Profile</h2>
             
             <div className="flex flex-col gap-6 max-w-2xl">
               <div className="flex items-center gap-6">
@@ -64,19 +61,7 @@ export default function SettingsPage() {
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-gray-700">Email Address</label>
                 <input type="email" className="input-glass text-gray-500" defaultValue="alex@noteflow.app" disabled />
-                <p className="text-xs text-gray-500">Your email address is used for logging in and cannot be changed here.</p>
-              </div>
-
-              <div className="flex flex-col gap-2 mt-4">
-                <label className="text-sm font-medium text-gray-700">Theme Preference</label>
-                <div className="flex gap-4">
-                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-600">
-                    <Moon size={18} /> Dark
-                  </button>
-                  <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-gray-300 bg-white text-gray-500 hover:text-gray-900 transition-colors">
-                    <Monitor size={18} /> System
-                  </button>
-                </div>
+                <p className="text-xs text-gray-500">Your email address is used for logging in.</p>
               </div>
 
               <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
