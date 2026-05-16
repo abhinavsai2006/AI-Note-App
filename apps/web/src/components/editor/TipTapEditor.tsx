@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -80,6 +81,15 @@ export default function TipTapEditor({ content, onChange }: { content?: string, 
       onChange?.(editor.getHTML());
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const nextContent = content || "";
+    if (editor.getHTML() !== nextContent) {
+      editor.commands.setContent(nextContent);
+    }
+  }, [content, editor]);
 
   return (
     <div className="flex flex-col h-full w-full">

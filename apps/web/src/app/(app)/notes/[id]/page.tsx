@@ -1,9 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useRef, useState } from "react";
-import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy, Archive, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { callAI, createSharedNote } from "@/lib/api";
+import { deleteLocalNote, getLocalNote, setNoteArchived, shareLocalNote, updateLocalNote } from "@/lib/localNotes";
+import { getSession } from "@/lib/localAuth";
 
 const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
   ssr: false,
@@ -13,33 +17,104 @@ const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
 });
 
 export default function NoteEditorPage() {
+  const params = useParams();
+  const router = useRouter();
+  const noteId = params.id as string;
   const [title, setTitle] = useState("Untitled Note");
+  const [content, setContent] = useState("");
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isArchived, setIsArchived] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const contentRef = useRef("");
-  const [aiResult, setAiResult] = useState<{ summary: string, action_items: string[], suggested_title: string } | null>(null);
+  const [aiResult, setAiResult] = useState<{ summary: string; action_items: string[]; suggested_title: string } | null>(null);
+
+  useEffect(() => {
+    if (!noteId || noteId === "new") {
+      setNotFound(true);
+      return;
+    }
+
+    const note = getLocalNote(noteId);
+    if (!note) {
+      setNotFound(true);
+      return;
+    }
+
+    setNotFound(false);
+    setTitle(note.title);
+    setContent(note.content);
+    contentRef.current = note.content;
+    setIsArchived(note.isArchived);
+    setAiResult(
+      note.summary
+        ? {
+            summary: note.summary,
+            action_items: note.actionItems ?? [],
+            suggested_title: note.suggestedTitle ?? note.title,
+          }
+        : null
+    );
+  }, [noteId]);
+
+  const persistNote = useCallback(
+    (nextTitle: string, nextContent: string) => {
+      if (!noteId || noteId === "new" || notFound) return;
+      updateLocalNote(noteId, {
+        title: nextTitle,
+        content: nextContent,
+        isArchived,
+      });
+    },
+    [isArchived, noteId, notFound]
+  );
 
   const handleContentChange = useCallback((html: string) => {
     contentRef.current = html;
-  }, []);
+    setContent(html);
+    persistNote(title, html);
+  }, [persistNote, title]);
 
-  const handleGenerateAI = () => {
+  const handleGenerateAI = async () => {
     setIsGenerating(true);
-    // Simulate streaming AI generation
-    setTimeout(() => {
-      setIsGenerating(false);
+    try {
+      const session = getSession();
+      const response = await callAI(
+        `Create a concise summary, action items, and a suggested title for this note. Return JSON with summary, action_items, and suggested_title.
+
+Title: ${title}
+User: ${session?.name || "NoteFlow user"}
+Content: ${contentRef.current || content}`
+      );
+
+      const summary = typeof response?.summary === "string" ? response.summary : response?.content || "No summary generated.";
+      const actionItems = Array.isArray(response?.action_items)
+        ? response.action_items.map((item: unknown) => String(item))
+        : [];
+      const suggestedTitle = typeof response?.suggested_title === "string" ? response.suggested_title : title;
+
+      setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
+      setTitle(suggestedTitle);
+      if (noteId && noteId !== "new" && !notFound) {
+        updateLocalNote(noteId, {
+          title: suggestedTitle,
+          content: contentRef.current || content,
+          summary,
+          actionItems,
+          suggestedTitle,
+        });
+      }
+    } catch {
       setAiResult({
-        summary: "This note outlines the architectural planning and MVP features for NoteFlow. It covers the transition to Next.js 14, the implementation of a 3D glassmorphic UI, and the integration of Anthropic's Claude for summarization.",
-        action_items: [
-          "Finalize database schema",
-          "Deploy Docker containers",
-          "Implement WebSocket auto-save"
-        ],
-        suggested_title: "NoteFlow MVP Architecture & Planning"
+        summary: "AI generation is temporarily unavailable.",
+        action_items: [],
+        suggested_title: title,
       });
-    }, 2500);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleShare = async () => {
@@ -47,14 +122,35 @@ export default function NoteEditorPage() {
     setShareMessage(null);
 
     try {
-      const shareId = `note-${Date.now()}`;
-      const shareUrl = new URL(`${window.location.origin}/shared/${shareId}`);
-      shareUrl.searchParams.set("title", title);
-      shareUrl.searchParams.set("content", contentRef.current || "");
-      shareUrl.searchParams.set("author", "You");
-      shareUrl.searchParams.set("createdAt", new Date().toISOString());
+      if (!noteId || noteId === "new") {
+        throw new Error("Save the note before sharing it.");
+      }
 
-      await navigator.clipboard.writeText(shareUrl.toString());
+      // Try server-backed share first (creates a publicly accessible share)
+      try {
+        const payload = {
+          title: title || "Untitled",
+          content: contentRef.current || content,
+          author: getSession()?.name || undefined,
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resp = await createSharedNote(payload as any);
+        if (resp?.shareUrl) {
+          await navigator.clipboard.writeText(resp.shareUrl);
+          setShareMessage("Share link copied to clipboard.");
+          return;
+        }
+      } catch {
+        // server unavailable or returned error — fall back to local share
+        // console.warn('Server share failed, falling back to local share', srvErr);
+      }
+
+      const result = shareLocalNote(noteId);
+      if (!result) {
+        throw new Error("Unable to create share link.");
+      }
+
+      await navigator.clipboard.writeText(result.shareUrl);
       setShareMessage("Share link copied to clipboard.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to create share link.";
@@ -63,6 +159,36 @@ export default function NoteEditorPage() {
       setIsSharing(false);
     }
   };
+
+  const handleArchiveToggle = () => {
+    if (!noteId || noteId === "new") return;
+    const updated = setNoteArchived(noteId, !isArchived);
+    setIsArchived(!isArchived);
+    if (updated) {
+      setShareMessage(updated.isArchived ? "Note archived." : "Note restored.");
+    }
+  };
+
+  const handleDelete = () => {
+    if (!noteId || noteId === "new") return;
+    deleteLocalNote(noteId);
+    router.push("/notes");
+  };
+
+  if (notFound) {
+    return (
+      <div className="flex w-full h-full items-center justify-center p-8">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Note not found</h1>
+          <p className="text-gray-600 mb-6">Create a new note or return to the notes list.</p>
+          <div className="flex justify-center gap-3">
+            <Link href="/notes" className="btn-secondary">Back to Notes</Link>
+            <Link href="/notes/new" className="btn-primary">New Note</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full h-full relative">
@@ -76,7 +202,10 @@ export default function NoteEditorPage() {
             <input 
               type="text" 
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                persistNote(e.target.value, contentRef.current || content);
+              }}
               className="bg-transparent border-none text-2xl font-bold focus:outline-none focus:ring-0 text-gray-900 w-full max-w-md placeholder:text-gray-400"
               placeholder="Note Title"
             />
@@ -85,6 +214,18 @@ export default function NoteEditorPage() {
             <span className="text-sm text-gray-500 flex items-center gap-1">
               <Clock size={14} /> Saved just now
             </span>
+            <button
+              onClick={handleArchiveToggle}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 transition-all duration-75"
+            >
+              <Archive size={18} /> {isArchived ? "Restore" : "Archive"}
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 transition-all duration-75"
+            >
+              <Trash2 size={18} /> Delete
+            </button>
             <button 
               onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-75 ${isAiPanelOpen ? 'bg-indigo-600 text-white shadow' : 'bg-gray-100 hover:bg-gray-200 border border-gray-300 text-indigo-600'}`}
@@ -111,7 +252,7 @@ export default function NoteEditorPage() {
 
         <div className="flex-1 overflow-hidden">
           <div className="h-full w-full max-w-4xl mx-auto p-8">
-            <TipTapEditor onChange={handleContentChange} />
+            <TipTapEditor key={noteId} content={content} onChange={handleContentChange} />
           </div>
         </div>
       </div>
@@ -169,12 +310,16 @@ export default function NoteEditorPage() {
                       <CheckSquare size={14} /> Action Items
                     </h4>
                     <ul className="flex flex-col gap-2">
-                      {aiResult.action_items.map((item, i) => (
+                      {aiResult.action_items.length === 0 ? (
+                        <li className="text-sm text-gray-500">No action items generated.</li>
+                      ) : (
+                        aiResult.action_items.map((item, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
                           <input type="checkbox" className="mt-1 rounded border-surface-border bg-background text-primary focus:ring-primary" />
                           <span>{item}</span>
                         </li>
-                      ))}
+                        ))
+                      )}
                     </ul>
                   </div>
                 </div>

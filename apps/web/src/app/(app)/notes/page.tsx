@@ -1,67 +1,79 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, FileText, Sparkles, Archive } from "lucide-react";
-import { getNotes, getTags } from "@/lib/api";
+import { getLocalNotes, type LocalNote } from "@/lib/localNotes";
+import { getSession } from "@/lib/localAuth";
+import { getNotes } from "@/lib/api";
 
-interface Tag {
+type Tag = {
   id: string;
   name: string;
-}
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  isArchived: boolean;
-  tags: Tag[];
-  createdAt: string;
-  updatedAt: string;
-    summary?: string;
-}
+};
 
 export default function NotesPage() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<LocalNote[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showArchived, setShowArchived] = useState(false);
   const [sort, setSort] = useState<"recent" | "oldest">("recent");
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  useEffect(() => {
+    const sync = async () => {
+      const session = getSession();
+      if (session?.token) {
+        try {
+          const serverNotes = await getNotes(session.token);
+          // transform server notes to LocalNote shape when possible
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const mapped = (serverNotes as unknown as Array<Record<string, unknown>>).map((n) => ({
+            id: String(n['id']),
+            title: String(n['title'] ?? ''),
+            content: String(n['content'] ?? ''),
+            tags: ((n['tags'] || []) as Array<Record<string, unknown>>).map((t) => ({ id: String(t['id']), name: String(t['name']) })),
+            isArchived: Boolean(n['isArchived']),
+            isPublic: Boolean(n['isPublic']),
+            shareId: n['shareId'] ? String(n['shareId']) : null,
+            createdAt: String(n['createdAt'] ?? ''),
+            updatedAt: String(n['updatedAt'] ?? ''),
+            summary: String(n['summary'] ?? ''),
+            actionItems: (n['actionItems'] || []) as string[],
+            suggestedTitle: n['suggestedTitle'] ? String(n['suggestedTitle']) : null,
+          }));
+          setNotes(mapped);
+          return;
+        } catch {
+          /* fallback to local */
+        }
+      }
+      setNotes(getLocalNotes());
+    };
+    sync();
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
 
   useEffect(() => {
-    async function load() {
-      // Demo data fallback if no token
-      if (!token) {
-        setNotes([
-          { id: "1", title: "Product Requirements", content: "Define the core features for NoteFlow MVP...", tags: [{id: "1", name: "Engineering"}, {id: "2", name: "Planning"}], isArchived: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-          { id: "2", title: "Q3 Marketing Strategy", content: "Focus on social media presence and content...", tags: [{id: "3", name: "Marketing"}], isArchived: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-          { id: "3", title: "Investor Update", content: "Metrics and growth highlights for the last month...", tags: [{id: "4", name: "Updates"}], isArchived: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        ]);
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        const [notesData, tagsData] = await Promise.all([
-          getNotes(token, { search: searchQuery, tag: selectedTag, sort, archive: showArchived }),
-          getTags(token),
-        ]);
-        setNotes(notesData || []);
-        setTags(tagsData || []);
-      } catch (err) {
-        console.error("Error loading notes:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [token, searchQuery, selectedTag, sort, showArchived]);
+    const uniqueTags = new Map<string, Tag>();
+    notes.forEach((note) => note.tags.forEach((tag) => uniqueTags.set(tag.id, tag)));
+    setTags(Array.from(uniqueTags.values()));
+  }, [notes]);
 
-  const filteredNotes = notes;
+  const filteredNotes = [...notes]
+    .filter((note) => (showArchived ? true : !note.isArchived))
+    .filter((note) => (selectedTag ? note.tags.some((tag) => tag.id === selectedTag) : true))
+    .filter((note) => {
+      const query = searchQuery.trim().toLowerCase();
+      if (!query) return true;
+      return `${note.title} ${note.content}`.toLowerCase().includes(query);
+    })
+    .sort((left, right) => {
+      const leftTime = new Date(left.updatedAt).getTime();
+      const rightTime = new Date(right.updatedAt).getTime();
+      return sort === "recent" ? rightTime - leftTime : leftTime - rightTime;
+    });
 
   return (
     <div className="flex w-full h-full flex-col md:flex-row">
@@ -151,20 +163,13 @@ export default function NotesPage() {
           </div>
         </header>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 mb-4 animate-pulse">
-              <FileText size={32} />
-            </div>
-            <p className="text-gray-600">Loading notes...</p>
-          </div>
-        ) : filteredNotes.length === 0 ? (
+        {filteredNotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 mb-4">
               <FileText size={32} />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No notes found</h3>
-            <p className="text-gray-600 mb-6">Try adjusting your search or filters.</p>
+            <p className="text-gray-600 mb-6">Create your first note to get started.</p>
             <button
               onClick={() => {
                 setSearchQuery("");

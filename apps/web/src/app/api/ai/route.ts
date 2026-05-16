@@ -1,5 +1,23 @@
 import { NextResponse } from "next/server";
 
+function buildStructuredResponse(content: string, prompt: string) {
+  const lines = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const actionItems = lines
+    .filter((line) => /^[-*•]|^\d+[.)]/.test(line))
+    .map((line) => line.replace(/^[-*•]\s*|^\d+[.)]\s*/, ""));
+
+  return {
+    summary: content.trim() || `Demo response: ${prompt.slice(0, 160)}.`,
+    action_items: actionItems,
+    suggested_title: lines[0]?.slice(0, 80) || "AI Summary",
+    content,
+  };
+}
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
@@ -12,8 +30,9 @@ export async function POST(request: Request) {
   const model = process.env.OPENROUTER_MODEL ?? "openai/gpt-4-turbo-preview";
 
   if (!apiKey) {
+    const demoContent = `Demo response: ${prompt.slice(0, 160)}. Connect OPENROUTER_API_KEY in Vercel to enable live AI.`;
     return NextResponse.json({
-      content: `Demo response: ${prompt.slice(0, 160)}. Connect OPENROUTER_API_KEY in Vercel to enable live AI.`,
+      ...buildStructuredResponse(demoContent, prompt),
       raw: { demo: true },
       model,
     });
@@ -36,8 +55,9 @@ export async function POST(request: Request) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    const fallback = `AI service temporarily unavailable. ${errorText}`;
     return NextResponse.json({
-      content: `AI service temporarily unavailable. ${errorText}`,
+      ...buildStructuredResponse(fallback, prompt),
       raw: { error: errorText },
       model,
     });
@@ -46,5 +66,9 @@ export async function POST(request: Request) {
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content ?? "No response from AI service.";
 
-  return NextResponse.json({ content, raw: data, model: data?.model ?? model });
+  return NextResponse.json({
+    ...buildStructuredResponse(content, prompt),
+    raw: data,
+    model: data?.model ?? model,
+  });
 }

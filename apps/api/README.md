@@ -1,3 +1,43 @@
+Prisma & Database setup (local)
+=================================
+
+This service uses Prisma and the database schema defined in `prisma/schema.prisma`.
+
+To run locally you need a `DATABASE_URL` environment variable pointing to a Postgres database.
+
+Quick start (recommended):
+
+1. Install dependencies
+
+```bash
+cd apps/api
+npm install
+```
+
+2. Set your database URL in `.env` (example already present). Do NOT commit secrets.
+
+3. Generate the Prisma client:
+
+```bash
+npx prisma generate
+```
+
+4. Run migrations (creates tables and applies schema):
+
+```bash
+npx prisma migrate dev --name init
+```
+
+5. Start the API server in dev mode:
+
+```bash
+npm run start:dev
+```
+
+Notes
+- If you don't have Postgres locally, you can use a hosted Postgres and set `DATABASE_URL` accordingly.
+- For deployments (Vercel), set `DATABASE_URL` as an environment variable in the dashboard.
+- The current code will create a `User` when creating a note if `userEmail` is provided.
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>

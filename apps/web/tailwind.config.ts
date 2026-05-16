@@ -18,8 +18,8 @@ const config: Config = {
         "surface-border": "#E5E7EB",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-        serif: ["var(--font-playfair)", "serif"],
+        sans: ["var(--font-geist-sans)", "sans-serif"],
+        serif: ["ui-serif", "Georgia", "serif"],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

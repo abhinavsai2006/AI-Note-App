@@ -14,14 +14,14 @@
 html, body {
   background-color: #FFFFFF;
   color: #1F2937;
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
   overflow-x: hidden;
 }
 
 body {
   color: var(--foreground);
   background-color: var(--background);
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
   overflow-x: hidden;
 }
 

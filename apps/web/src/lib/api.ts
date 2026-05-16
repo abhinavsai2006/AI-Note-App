@@ -15,6 +15,8 @@ export type CreateNoteDto = {
   title: string;
   content: string;
   tags?: string[];
+  userEmail?: string;
+  userName?: string;
 };
 
 export type SearchParams = {
@@ -54,35 +56,41 @@ export async function getCurrentUser(token: string) {
 }
 
 // Notes endpoints
-export async function getNotes(token: string, params: SearchParams = {}) {
+export async function getNotes(token?: string, params: SearchParams = {}) {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
   if (params.tag) query.set("tag", params.tag);
   if (params.sort) query.set("sort", params.sort);
   if (params.archive !== undefined) query.set("archive", String(params.archive));
 
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(`${API_BASE}/notes?${query}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-export async function getNote(token: string, id: string) {
+export async function getNote(token: string | undefined, id: string) {
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(`${API_BASE}/notes/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-export async function createNote(token: string, data: CreateNoteDto) {
+export async function createNote(token: string | undefined, data: CreateNoteDto) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(`${API_BASE}/notes`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -90,36 +98,39 @@ export async function createNote(token: string, data: CreateNoteDto) {
 }
 
 export async function updateNote(
-  token: string,
+  token: string | undefined,
   id: string,
-  data: Partial<CreateNoteDto> & { isArchived?: boolean }
+  data: Partial<CreateNoteDto> & { isArchived?: boolean; isPublic?: boolean }
 ) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(`${API_BASE}/notes/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-export async function deleteNote(token: string, id: string) {
+export async function deleteNote(token: string | undefined, id: string) {
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(`${API_BASE}/notes/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-export async function archiveNote(token: string, id: string) {
+export async function archiveNote(token: string | undefined, id: string) {
   return updateNote(token, id, { isArchived: true });
 }
 
-export async function restoreNote(token: string, id: string) {
+export async function restoreNote(token: string | undefined, id: string) {
   return updateNote(token, id, { isArchived: false });
 }
 
@@ -180,6 +191,17 @@ export async function shareNote(token: string, noteId: string) {
 
 export async function getSharedNote(shareId: string) {
   const res = await fetch(`${API_BASE}/shared/${shareId}`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function createSharedNote(data: { title: string; content: string; author?: string }) {
+  const res = await fetch(`${API_BASE}/shared`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }

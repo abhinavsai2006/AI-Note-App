@@ -14,6 +14,11 @@ export type StoredSession = {
 const ACCOUNTS_KEY = "noteflow-accounts";
 const SESSION_KEY = "noteflow-session";
 
+function notifyStorageChange() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("storage"));
+}
+
 function readStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
 
@@ -28,6 +33,7 @@ function readStorage<T>(key: string, fallback: T): T {
 function writeStorage<T>(key: string, value: T) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(key, JSON.stringify(value));
+  notifyStorageChange();
 }
 
 async function hashPassword(password: string) {
@@ -49,10 +55,67 @@ export function getSession() {
 export function logoutLocalAuth() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(SESSION_KEY);
+  notifyStorageChange();
 }
+
+export function updateStoredAccount(input: { email: string; name?: string }) {
+  const email = input.email.trim().toLowerCase();
+  const accounts = getAccounts();
+  const nextAccounts = accounts.map((account) =>
+    account.email === email
+      ? {
+          ...account,
+          name: input.name?.trim() || account.name,
+        }
+      : account
+  );
+
+  writeStorage(ACCOUNTS_KEY, nextAccounts);
+
+  const session = getSession();
+  if (session?.email === email && input.name) {
+    writeStorage(SESSION_KEY, {
+      ...session,
+      name: input.name.trim(),
+    });
+  }
+}
+
+export function updateSessionName(name: string) {
+  const session = getSession();
+  if (!session) return;
+
+  const nextName = name.trim();
+  if (!nextName) return;
+
+  writeStorage(SESSION_KEY, {
+    ...session,
+    name: nextName,
+  });
+
+  updateStoredAccount({ email: session.email, name: nextName });
+}
+
+import { signup, login } from "@/lib/api";
 
 export async function createAccount(input: { name: string; email: string; password: string }) {
   const email = input.email.trim().toLowerCase();
+
+  // Try server signup first
+  try {
+    const res = await signup(email, input.password, input.name);
+    const session: StoredSession = {
+      token: res.token ?? res.accessToken ?? crypto.randomUUID(),
+      email: res.user?.email ?? email,
+      name: res.user?.name ?? input.name,
+      createdAt: new Date().toISOString(),
+    };
+    writeStorage(SESSION_KEY, session);
+    return { account: { name: session.name, email: session.email, passwordHash: '' }, session };
+  } catch {
+    // fallback to local account if server unavailable
+  }
+
   const existingAccounts = getAccounts();
 
   if (existingAccounts.some((account) => account.email === email)) {
@@ -81,6 +144,22 @@ export async function createAccount(input: { name: string; email: string; passwo
 
 export async function signInAccount(input: { email: string; password: string }) {
   const email = input.email.trim().toLowerCase();
+
+  // Try server login first
+  try {
+    const res = await login(email, input.password);
+    const session: StoredSession = {
+      token: res.token ?? res.accessToken ?? crypto.randomUUID(),
+      email: res.user?.email ?? email,
+      name: res.user?.name ?? '',
+      createdAt: new Date().toISOString(),
+    };
+    writeStorage(SESSION_KEY, session);
+    return { account: { name: session.name, email: session.email, passwordHash: '' }, session };
+  } catch {
+    // fallback to local
+  }
+
   const account = getAccounts().find((item) => item.email === email);
 
   if (!account) {

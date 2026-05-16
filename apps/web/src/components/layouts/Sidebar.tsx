@@ -1,13 +1,29 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FileText, PieChart, Settings, LogOut, Menu } from "lucide-react";
-import { useState } from "react";
+import { Home, FileText, PieChart, Settings, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getSession, logoutLocalAuth } from "@/lib/localAuth";
+import { getStoredAvatar } from "@/lib/localProfile";
 
-export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
+export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [name, setName] = useState("Guest");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sync = () => {
+      const session = getSession();
+      setName(session?.name || "Guest");
+      setAvatarUrl(getStoredAvatar());
+    };
+
+    sync();
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -23,32 +39,13 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
       className={`h-screen bg-white border-r border-gray-200 flex flex-col flex-shrink-0 relative overflow-visible ${
         mobileVisible ? 'fixed inset-0 z-40 w-72 shadow-lg md:static md:shadow-none' : 'hidden md:flex'
       }`}
-      style={{ width: isCollapsed ? 72 : 260 }}
     >
-      <button 
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute right-3 top-6 bg-gray-100 border border-gray-300 p-1 rounded text-gray-600 hover:bg-gray-200 z-20"
-      >
-        <Menu size={16} />
-      </button>
-
-      {mobileVisible && (
-        <button
-          onClick={() => onClose?.()}
-          aria-label="Close sidebar"
-          className="absolute left-[calc(100%+8px)] top-6 bg-transparent text-gray-600 p-1 rounded md:hidden"
-        >
-          ✕
-        </button>
-      )}
-
       <div className="p-6 pb-2">
-        <div className={`flex items-center gap-3 font-serif font-bold text-2xl mb-12 ${isCollapsed ? 'justify-center' : ''}`}>
+        <div className="flex items-center gap-3 font-serif font-bold text-2xl mb-12">
           <div className="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0 text-white">
             ✦
           </div>
-          {!isCollapsed && <span className="text-gray-900">Note<span className="text-indigo-600">Flow</span></span>}
+          <span className="text-gray-900">Note<span className="text-indigo-600">Flow</span></span>
         </div>
 
         <nav className="flex flex-col gap-2">
@@ -68,7 +65,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
                     size={20}
                     className={`${isActive ? 'text-indigo-600' : 'group-hover:text-indigo-600'}`}
                   />
-                  {!isCollapsed && <span className="font-medium">{item.label}</span>}
+                  <span className="font-medium">{item.label}</span>
                 </div>
               </Link>
             );
@@ -77,16 +74,29 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
       </div>
 
       <div className="mt-auto p-6 border-t border-gray-200">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="relative w-10 h-10 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center text-gray-500 text-sm font-semibold">
+            {avatarUrl ? (
+              <Image src={avatarUrl} alt="User avatar" fill className="object-cover" unoptimized />
+            ) : (
+              name.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{name}</p>
+            <p className="text-xs text-gray-500">Workspace account</p>
+          </div>
+        </div>
         <button 
           onClick={() => {
-            localStorage.removeItem('token');
+            logoutLocalAuth();
             window.location.href = '/auth/login';
           }}
-          className={`w-full flex items-center gap-4 px-4 py-3 rounded text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+          className="w-full flex items-center gap-4 px-4 py-3 rounded text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
           title="Logout"
         >
           <LogOut size={20} />
-          {!isCollapsed && <span className="font-medium">Logout</span>}
+          <span className="font-medium">Logout</span>
         </button>
       </div>
     </div>
