@@ -9,7 +9,6 @@
     "NEXT_PUBLIC_API_URL"
   ],
   "regions": ["iad1"],
-  "memory": 1024,
   "functions": {
     "api/**": {
       "memory": 1024,
