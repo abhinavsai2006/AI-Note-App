@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export type Note = {
   id: string;
@@ -155,12 +155,12 @@ export async function generateAISummary(token: string, noteId: string) {
   return res.json();
 }
 
-export async function callAI(token: string, prompt: string) {
+export async function callAI(prompt: string, token?: string) {
   const res = await fetch(`${API_BASE}/ai`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ prompt }),
   });

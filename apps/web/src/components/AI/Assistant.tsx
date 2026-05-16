@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { callAI } from "@/lib/api";
 
 export default function Assistant() {
   const [open, setOpen] = useState(false);
@@ -15,12 +16,7 @@ export default function Assistant() {
     setPrompt("");
     setLoading(true);
     try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
+      const data = await callAI(prompt);
       const content = data?.content ?? JSON.stringify(data?.raw ?? data ?? "No response");
       setMessages((s: Array<{role: string; content: string}>) => [...s, { role: "assistant", content }]);
     } catch (err) {

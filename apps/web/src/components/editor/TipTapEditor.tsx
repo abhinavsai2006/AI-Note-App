@@ -73,7 +73,7 @@ export default function TipTapEditor({ content, onChange }: { content?: string, 
     content: content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-invert prose-p:leading-relaxed prose-pre:bg-surface-hover prose-pre:border prose-pre:border-surface-border max-w-none focus:outline-none min-h-[500px]',
+        class: 'prose prose-p:leading-relaxed prose-pre:bg-surface-hover prose-pre:border prose-pre:border-surface-border prose-p:text-gray-900 prose-headings:text-gray-900 prose-li:text-gray-900 prose-blockquote:text-gray-900 max-w-none focus:outline-none min-h-[500px] text-gray-900',
       },
     },
     onUpdate: ({ editor }) => {
@@ -84,7 +84,7 @@ export default function TipTapEditor({ content, onChange }: { content?: string, 
   return (
     <div className="flex flex-col h-full w-full">
       <MenuBar editor={editor} />
-      <div className="flex-1 overflow-y-auto px-2">
+      <div className="flex-1 overflow-y-auto px-2 text-gray-900">
         <EditorContent editor={editor} />
       </div>
     </div>

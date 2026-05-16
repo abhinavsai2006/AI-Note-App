@@ -68,15 +68,26 @@ body {
 
 /* TipTap Editor Styles */
 .ProseMirror {
-  @apply outline-none min-h-[500px] p-4 bg-white border border-gray-200 rounded;
+  @apply outline-none min-h-[500px] p-4 bg-white border border-gray-200 rounded text-gray-900;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: rgba(31, 41, 55, 0.4);
+  color: rgba(31, 41, 55, 0.45);
   pointer-events: none;
   height: 0;
+}
+
+.ProseMirror ul,
+.ProseMirror ol,
+.ProseMirror li,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror blockquote,
+.ProseMirror p {
+  color: #1F2937;
 }
 
 @media (prefers-reduced-motion: reduce) {
