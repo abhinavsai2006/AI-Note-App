@@ -37,14 +37,19 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
   headers.delete('connection');
 
   try {
+    let body: any = undefined;
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      body = await req.arrayBuffer();
+    }
+
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: headers,
-      body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.blob() : undefined,
+      body: body,
       cache: 'no-store',
     });
 
-    const data = await response.blob();
+    const data = await response.arrayBuffer();
     return new NextResponse(data, {
       status: response.status,
       headers: response.headers,
