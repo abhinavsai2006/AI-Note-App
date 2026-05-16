@@ -6,6 +6,7 @@ export type StoredAccount = {
 
 export type StoredSession = {
   token: string;
+  refreshToken?: string;
   email: string;
   name: string;
   createdAt: string;
@@ -105,15 +106,17 @@ export async function createAccount(input: { name: string; email: string; passwo
   try {
     const res = await signup(email, input.password, input.name);
     const session: StoredSession = {
-      token: res.token ?? res.accessToken ?? crypto.randomUUID(),
-      email: res.user?.email ?? email,
-      name: res.user?.name ?? input.name,
+      token: res.accessToken || res.token || crypto.randomUUID(),
+      refreshToken: res.refreshToken,
+      email: res.user?.email || email,
+      name: res.user?.name || input.name,
       createdAt: new Date().toISOString(),
     };
     writeStorage(SESSION_KEY, session);
     return { account: { name: session.name, email: session.email, passwordHash: '' }, session };
-  } catch {
+  } catch (error) {
     // fallback to local account if server unavailable
+    console.warn('Server signup failed, using local fallback:', error);
   }
 
   const existingAccounts = getAccounts();
@@ -149,15 +152,17 @@ export async function signInAccount(input: { email: string; password: string }) 
   try {
     const res = await login(email, input.password);
     const session: StoredSession = {
-      token: res.token ?? res.accessToken ?? crypto.randomUUID(),
-      email: res.user?.email ?? email,
-      name: res.user?.name ?? '',
+      token: res.accessToken || res.token || crypto.randomUUID(),
+      refreshToken: res.refreshToken,
+      email: res.user?.email || email,
+      name: res.user?.name || '',
       createdAt: new Date().toISOString(),
     };
     writeStorage(SESSION_KEY, session);
     return { account: { name: session.name, email: session.email, passwordHash: '' }, session };
-  } catch {
+  } catch (error) {
     // fallback to local
+    console.warn('Server login failed, using local fallback:', error);
   }
 
   const account = getAccounts().find((item) => item.email === email);

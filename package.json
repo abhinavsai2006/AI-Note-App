@@ -1,13 +1,27 @@
 {
   "name": "noteflow-monorepo",
+  "version": "1.0.0",
+  "description": "NoteFlow: AI-powered notes workspace with productivity insights",
   "private": true,
   "scripts": {
-    "vercel-build": "cd apps/api && npm ci && npm run build && cd ../web && npm ci && npm run build",
-    "build": "cd apps/web && npm ci && npm run build"
+    "dev": "concurrently \"cd apps/web && npm run dev\" \"cd apps/api && npm run start:dev\"",
+    "build": "npm run build:api && npm run build:web",
+    "build:web": "cd apps/web && npm ci && npm run build",
+    "build:api": "cd apps/api && npm ci && npm run build",
+    "start": "npm run start:web",
+    "start:web": "cd apps/web && npm run start",
+    "start:api": "cd apps/api && npm run start:prod",
+    "lint": "cd apps/web && npm run lint && cd ../api && npm run lint"
+  },
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "devDependencies": {
-    "next": "14.2.35",
-    "react": "18",
-    "react-dom": "18"
+    "concurrently": "^9.1.0"
   }
 }

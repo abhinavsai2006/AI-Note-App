@@ -157,10 +157,17 @@ export default function SharedNotePage() {
             </div>
           )}
 
-          <div className="prose max-w-none mb-8">
-            <div className="whitespace-pre-wrap text-gray-900 leading-relaxed">
-              {note.content}
-            </div>
+          <div className="prose prose-p:leading-relaxed prose-p:text-gray-900 prose-headings:text-gray-900 prose-li:text-gray-900 prose-blockquote:text-gray-900 max-w-none mb-8">
+            {note.content.includes('<') && note.content.includes('>') ? (
+              <div
+                className="text-gray-900 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: note.content }}
+              />
+            ) : (
+              <div className="whitespace-pre-wrap text-gray-900 leading-relaxed">
+                {note.content}
+              </div>
+            )}
           </div>
 
           {note.summary && (

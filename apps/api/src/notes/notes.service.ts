@@ -70,15 +70,28 @@ export class NotesService {
     const note = await this.prisma.note.findUnique({ where: { id: noteId } });
     if (!note) throw new InternalServerErrorException('Note not found');
 
+    // Helper function to strip HTML tags from content
+    const stripHtml = (html: string) => {
+      return html
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .trim();
+    };
+
     const prompt = `You are an assistant that generates a concise JSON summary for a user note.
 Return valid JSON with keys: summary (string), action_items (array of strings), suggested_title (string).
-Do not include any extra commentary. Note content follows:\n\n${note.content}`;
+Do not include any extra commentary. Note content follows:\n\n${stripHtml(note.content)}`;
 
     let parsed: { summary?: string; action_items?: string[]; suggested_title?: string } = {};
 
     if (!process.env.OPENROUTER_API_KEY) {
       // Fallback simple summary when no API key is configured (useful for local testing)
-      const text = note.content || '';
+      const text = stripHtml(note.content || '');
       parsed.summary = text.length > 300 ? text.slice(0, 300) + '…' : text;
       const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
       parsed.action_items = lines.filter((l) => /^(-|\*|\d+\.)\s+/.test(l) || /\b(todo|fix|implement|add|update)\b/i.test(l)).slice(0, 8);

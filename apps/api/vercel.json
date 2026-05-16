@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/main.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/main"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "JWT_SECRET": "@jwt_secret",
+    "CORS_ORIGIN": "@cors_origin",
+    "OPENROUTER_API_KEY": "@openrouter_api_key"
+  }
+}

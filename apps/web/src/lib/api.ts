@@ -1,3 +1,31 @@
+// API configuration with fallback for development
+// In production, NEXT_PUBLIC_API_URL should be: https://api-snowy-rho-50.vercel.app
+// In development, NEXT_PUBLIC_API_URL should be: http://localhost:3001
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+// Utility function to strip HTML tags for preview text
+  if (!html) return "";
+  return html
+    .replace(/<[^>]*>/g, "") // Remove all HTML tags
+    .replace(/&nbsp;/g, " ") // Replace non-breaking spaces
+    .replace(/&lt;/g, "<") // Decode HTML entities
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
+
+// Utility function to get preview text from content (HTML or plain text)
+export function getPreviewText(content: string, maxLength: number = 150): string {
+  if (!content) return "No content yet.";
+  const plainText = stripHtmlTags(content);
+  if (plainText.length > maxLength) {
+    return plainText.slice(0, maxLength) + "…";
+  }
+  return plainText;
+}
+
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export type Note = {
@@ -42,6 +70,37 @@ export async function login(email: string, password: string) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function refreshAccessToken(refreshToken: string) {
+  const res = await fetch(`${API_BASE}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function logout() {
+  const res = await fetch(`${API_BASE}/auth/logout`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function changePassword(token: string, oldPassword: string, newPassword: string) {
+  const res = await fetch(`${API_BASE}/auth/password`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ oldPassword, newPassword }),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();

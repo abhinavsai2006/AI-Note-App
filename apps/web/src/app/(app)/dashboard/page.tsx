@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Plus, Search, FileText, Bell } from "lucide-react";
+import { Plus, Search, FileText, Bell, AlertCircle } from "lucide-react";
 import { getSession } from "@/lib/localAuth";
-import { getNotes } from "@/lib/api";
+import { getNotes, getPreviewText } from "@/lib/api";
 import { getStoredAvatar } from "@/lib/localProfile";
 import { getLocalNotes, type LocalNote } from "@/lib/localNotes";
 
@@ -13,34 +13,48 @@ export default function DashboardPage() {
   const [name, setName] = useState("Guest");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [notes, setNotes] = useState<LocalNote[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const sync = async () => {
-      const session = getSession();
-      setName(session?.name || "Guest");
-      setAvatarUrl(getStoredAvatar());
-      if (session?.token) {
-        try {
-          const serverNotes = await getNotes(session.token);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const mapped = (serverNotes as unknown as Array<Record<string, unknown>>).map((n) => ({
-            id: String(n['id']),
-            title: String(n['title'] ?? ''),
-            content: String(n['content'] ?? ''),
-            tags: ((n['tags'] || []) as Array<Record<string, unknown>>).map((t) => ({ id: String(t['id']), name: String(t['name']) })),
-            isArchived: Boolean(n['isArchived']),
-            isPublic: Boolean(n['isPublic']),
-            shareId: n['shareId'] ? String(n['shareId']) : null,
-            createdAt: String(n['createdAt'] ?? ''),
-            updatedAt: String(n['updatedAt'] ?? ''),
-          }));
-          setNotes(mapped);
-          return;
-        } catch {
-          // fallback to local
+      try {
+        setIsLoading(true);
+        setError(null);
+        const session = getSession();
+        setName(session?.name || "Guest");
+        setAvatarUrl(getStoredAvatar());
+        
+        if (session?.token) {
+          try {
+            const serverNotes = await getNotes(session.token);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const mapped = (serverNotes as unknown as Array<Record<string, unknown>>).map((n) => ({
+              id: String(n['id']),
+              title: String(n['title'] ?? ''),
+              content: String(n['content'] ?? ''),
+              tags: ((n['tags'] || []) as Array<Record<string, unknown>>).map((t) => ({ id: String(t['id']), name: String(t['name']) })),
+              isArchived: Boolean(n['isArchived']),
+              isPublic: Boolean(n['isPublic']),
+              shareId: n['shareId'] ? String(n['shareId']) : null,
+              createdAt: String(n['createdAt'] ?? ''),
+              updatedAt: String(n['updatedAt'] ?? ''),
+            }));
+            setNotes(mapped);
+            return;
+          } catch (err) {
+            console.warn('Server notes unavailable:', err);
+            setError('Could not load notes from server, using local storage');
+          }
         }
+        setNotes(getLocalNotes());
+      } catch (err) {
+        console.error('Error syncing notes:', err);
+        setError('Failed to load notes');
+        setNotes(getLocalNotes());
+      } finally {
+        setIsLoading(false);
       }
-      setNotes(getLocalNotes());
     };
 
     sync();
@@ -76,6 +90,13 @@ export default function DashboardPage() {
         </div>
       </header>
 
+      {error && (
+        <div className="flex gap-3 items-start rounded-lg border border-amber-300 bg-amber-50 p-4 mb-6 text-amber-800">
+          <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+          <div className="text-sm">{error}</div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold flex items-center gap-2">
           Recent Notes
@@ -87,7 +108,12 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {recentNotes.length === 0 ? (
+      {isLoading ? (
+        <div className="glass-card p-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Loading your notes...</p>
+        </div>
+      ) : recentNotes.length === 0 ? (
         <div className="glass-card p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 mx-auto mb-4">
             <FileText size={32} />
@@ -106,7 +132,7 @@ export default function DashboardPage() {
             <Link key={note.id} href={`/notes/${note.id}`} className="glass-card p-5 hover:border-indigo-300 transition-colors">
               <p className="text-xs uppercase tracking-wider text-gray-500 mb-3">Updated {new Date(note.updatedAt).toLocaleDateString()}</p>
               <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{note.title}</h3>
-              <p className="text-sm text-gray-600 line-clamp-3 mb-4">{note.content || "No content yet."}</p>
+              <p className="text-sm text-gray-600 line-clamp-3 mb-4">{getPreviewText(note.content, 150)}</p>
               <div className="flex flex-wrap gap-2">
                 {note.tags.slice(0, 2).map((tag) => (
                   <span key={tag.id} className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-700">{tag.name}</span>

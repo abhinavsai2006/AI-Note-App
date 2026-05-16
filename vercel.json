@@ -1,21 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "apps/web/package.json", "use": "@vercel/next" },
-    { "src": "apps/api/src/main.ts", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/apps/api/src/$1" },
-    { "src": "/(.*)", "dest": "/apps/web/$1" }
-  ]
-}
-{
-  "version": 2,
-  "builds": [
+  "projects": [
     {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
+      "name": "noteflow-web",
+      "rootDirectory": "apps/web"
+    },
+    {
+      "name": "noteflow-api",
+      "rootDirectory": "apps/api"
     }
-  ],
-  "routes": []
+  ]
 }
