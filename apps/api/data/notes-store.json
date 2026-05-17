@@ -1,0 +1,25 @@
+[
+  {
+    "id": "353b4087-b698-41b7-b8aa-f9336d0dc307",
+    "title": "E2E Validation Note",
+    "content": "<h1>Testing Nodeflow API</h1><p>This note was automatically created by the validation bot to test the database connections and caching fallbacks.</p>",
+    "isArchived": false,
+    "isPublic": false,
+    "shareId": "0159cd63-4d6f-471c-ac44-92e1a14590a8",
+    "tags": [],
+    "createdAt": "2026-05-17T11:19:49.018Z",
+    "updatedAt": "2026-05-17T11:19:49.018Z",
+    "ownerEmail": "test-62154@noteflow-verify.com",
+    "ownerName": "Verification Bot",
+    "aiSummaries": [
+      {
+        "summary": "Testing Nodeflow APIThis note was automatically created by the validation bot to test the database connections and caching fallbacks.",
+        "actionItems": [],
+        "suggestedTitle": "E2E Validation Note",
+        "tokensUsed": 0,
+        "model": "local-fallback",
+        "createdAt": "2026-05-17T11:19:49.084Z"
+      }
+    ]
+  }
+]
