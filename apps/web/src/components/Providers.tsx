@@ -1,7 +1,8 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import ErrorBoundary from './ErrorBoundary';
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -15,9 +16,19 @@ export default function Providers({ children }: { children: ReactNode }) {
     },
   }));
 
+  useEffect(() => {
+    const onUnhandledRejection = (ev: PromiseRejectionEvent) => {
+      // eslint-disable-next-line no-console
+      console.error('Unhandled promise rejection:', ev.reason);
+    };
+
+    window.addEventListener('unhandledrejection', onUnhandledRejection as any);
+    return () => window.removeEventListener('unhandledrejection', onUnhandledRejection as any);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <ErrorBoundary>{children}</ErrorBoundary>
     </QueryClientProvider>
   );
 }
