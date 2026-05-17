@@ -24,6 +24,19 @@ const debounce = <Args extends readonly unknown[]>(func: (...args: Args) => void
   };
 };
 
+async function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 export default function NoteEditorPage() {
   const params = useParams();
   const router = useRouter();
@@ -113,7 +126,11 @@ export default function NoteEditorPage() {
 
       // If user is authenticated, prefer server-side DB-backed summary generation
       if (session?.token && noteId && noteId !== "new" && !notFound) {
-        const record = await generateAISummary(session.token, noteId);
+        const record = await withTimeout(
+          generateAISummary(session.token, noteId),
+          8000,
+          'AI summary request timed out. Please try again.'
+        );
 
         // record from server: { id, noteId, summary, actionItems, suggestedTitle, ... }
         const summary = record?.summary ?? "";
@@ -122,7 +139,11 @@ export default function NoteEditorPage() {
 
         setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
         setTitle(suggestedTitle);
-        await updateNote(session.token, noteId, { title: suggestedTitle, content: contentRef.current || content });
+        await withTimeout(
+          updateNote(session.token, noteId, { title: suggestedTitle, content: contentRef.current || content }),
+          8000,
+          'Note update timed out. Please try again.'
+        );
       } else {
         const response = await callAI(
           `Create a concise summary, action items, and a suggested title for this note. Return JSON with summary, action_items, and suggested_title.\n\nTitle: ${title}\nUser: ${session?.name || "NoteFlow user"}\nContent: ${contentRef.current || content}`
@@ -137,9 +158,10 @@ export default function NoteEditorPage() {
         setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
         setTitle(suggestedTitle);
       }
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'AI generation is temporarily unavailable.';
       setAiResult({
-        summary: "AI generation is temporarily unavailable.",
+        summary: message,
         action_items: [],
         suggested_title: title,
       });
@@ -162,7 +184,11 @@ export default function NoteEditorPage() {
       try {
         const session = getSession();
         if (session?.token && noteId && noteId !== "new") {
-          const resp = await shareNote(session.token, noteId as string);
+          const resp = await withTimeout(
+            shareNote(session.token, noteId as string),
+            8000,
+            'Share request timed out. Please try again.'
+          );
           if (resp?.shareUrl) {
             setShareUrlState(resp.shareUrl);
             setShareMessage("Share link ready.");

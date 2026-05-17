@@ -60,12 +60,16 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
       }
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: headers,
       body: body,
       cache: 'no-store',
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
 
     if (response.status >= 500) {
       const errorText = await response.text().catch(() => '');
@@ -94,12 +98,16 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
       headers: responseHeaders,
     });
   } catch (error) {
+    const isTimeout = error instanceof Error && error.name === 'AbortError';
     console.error('[Proxy] Error forwarding request:', {
       target: targetUrl,
       error: error instanceof Error ? error.message : String(error),
     });
     return NextResponse.json(
-      { error: 'Failed to proxy request', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: isTimeout ? 'Upstream request timed out' : 'Failed to proxy request',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 502 }
     );
   }
