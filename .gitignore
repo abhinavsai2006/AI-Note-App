@@ -38,3 +38,10 @@ pnpm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+apps/api/data/
+apps/api/backup-data/
+artifacts/
+prod-*.txt
+vercel-*.txt
+signup-response.txt
+temp-payload-*.json
