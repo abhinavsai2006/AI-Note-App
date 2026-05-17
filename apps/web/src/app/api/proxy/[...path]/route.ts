@@ -16,6 +16,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { path: str
   return proxyRequest(req, params.path);
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: { path: string[] } }) {
+  return proxyRequest(req, params.path);
+}
+
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, {
     status: 204,
