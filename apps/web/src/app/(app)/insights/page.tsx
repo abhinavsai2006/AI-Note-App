@@ -29,8 +29,13 @@ export default function InsightsPage() {
         return;
       }
 
-      const serverNotes = await getNotes(session.token);
-      setNotes(serverNotes as InsightNote[]);
+      try {
+        const serverNotes = await getNotes(session.token);
+        setNotes(serverNotes as InsightNote[]);
+      } catch (error) {
+        console.error('Error syncing notes:', error instanceof Error ? error.message : String(error));
+        setNotes([]);
+      }
     };
 
     sync();

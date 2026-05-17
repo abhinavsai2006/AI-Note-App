@@ -66,6 +66,12 @@ async function requestJson(url: string, options: RequestInit = {}) {
       throw new Error(text || `${res.status} ${res.statusText}`);
     }
     return res.json();
+  } catch (error) {
+    // Properly handle AbortError from timeout
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
