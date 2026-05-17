@@ -5,8 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Sparkles, CheckSquare, Clock, Link2, Copy, Archive, Trash2, Loader } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { callAI, createSharedNote, generateAISummary } from "@/lib/api";
-import { deleteLocalNote, getLocalNote, setNoteArchived, shareLocalNote, updateLocalNote } from "@/lib/localNotes";
+import { archiveNote, callAI, deleteNote, generateAISummary, getNote, shareNote, updateNote } from "@/lib/api";
 import { getSession } from "@/lib/localAuth";
 
 const TipTapEditor = dynamic(() => import("@/components/editor/TipTapEditor"), {
@@ -42,44 +41,52 @@ export default function NoteEditorPage() {
   const contentRef = useRef("");
   const debouncedSaveRef = useRef<((nextTitle: string, nextContent: string) => void) | null>(null);
   const [aiResult, setAiResult] = useState<{ summary: string; action_items: string[]; suggested_title: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const session = getSession();
+    if (!session?.token) {
+      router.replace('/auth/login');
+      return;
+    }
+
     if (!noteId || noteId === "new") {
+      setLoading(false);
       setNotFound(true);
       return;
     }
 
-    const note = getLocalNote(noteId);
-    if (!note) {
-      setNotFound(true);
-      return;
-    }
-
-    setNotFound(false);
-    setTitle(note.title);
-    setContent(note.content);
-    contentRef.current = note.content;
-    setIsArchived(note.isArchived);
-    setAiResult(
-      note.summary
-        ? {
-            summary: note.summary,
-            action_items: note.actionItems ?? [],
-            suggested_title: note.suggestedTitle ?? note.title,
-          }
-        : null
-    );
-  }, [noteId]);
+    setLoading(true);
+    getNote(session.token, noteId)
+      .then((note: any) => {
+        setNotFound(false);
+        setTitle(note.title || "Untitled Note");
+        setContent(note.content || "");
+        contentRef.current = note.content || "";
+        setIsArchived(Boolean(note.isArchived));
+        setAiResult(
+          note.summary
+            ? {
+                summary: note.summary.summary ?? note.summary ?? "",
+                action_items: note.summary.action_items ?? note.actionItems ?? [],
+                suggested_title: note.summary.suggested_title ?? note.suggestedTitle ?? note.title,
+              }
+            : null
+        );
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [noteId, router]);
 
   const persistNote = useCallback(
     (nextTitle: string, nextContent: string) => {
-      if (!noteId || noteId === "new" || notFound) return;
-      updateLocalNote(noteId, {
+      const session = getSession();
+      if (!session?.token || !noteId || noteId === "new" || notFound) return;
+      void updateNote(session.token, noteId, {
         title: nextTitle,
         content: nextContent,
         isArchived,
-      });
-      setSaveStatus('saved');
+      }).then(() => setSaveStatus('saved')).catch(() => setSaveStatus('unsaved'));
     },
     [isArchived, noteId, notFound]
   );
@@ -115,13 +122,7 @@ export default function NoteEditorPage() {
 
         setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
         setTitle(suggestedTitle);
-        updateLocalNote(noteId, {
-          title: suggestedTitle,
-          content: contentRef.current || content,
-          summary,
-          actionItems,
-          suggestedTitle,
-        });
+        await updateNote(session.token, noteId, { title: suggestedTitle, content: contentRef.current || content });
       } else {
         const response = await callAI(
           `Create a concise summary, action items, and a suggested title for this note. Return JSON with summary, action_items, and suggested_title.\n\nTitle: ${title}\nUser: ${session?.name || "NoteFlow user"}\nContent: ${contentRef.current || content}`
@@ -135,15 +136,6 @@ export default function NoteEditorPage() {
 
         setAiResult({ summary, action_items: actionItems, suggested_title: suggestedTitle });
         setTitle(suggestedTitle);
-        if (noteId && noteId !== "new" && !notFound) {
-          updateLocalNote(noteId, {
-            title: suggestedTitle,
-            content: contentRef.current || content,
-            summary,
-            actionItems,
-            suggestedTitle,
-          });
-        }
       }
     } catch {
       setAiResult({
@@ -170,38 +162,18 @@ export default function NoteEditorPage() {
       try {
         const session = getSession();
         if (session?.token && noteId && noteId !== "new") {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const resp = await (await import("@/lib/api")).shareNote(session.token, noteId as string);
+          const resp = await shareNote(session.token, noteId as string);
           if (resp?.shareUrl) {
             setShareUrlState(resp.shareUrl);
             setShareMessage("Share link ready.");
             return;
           }
         }
-
-        const payload = {
-          title: title || "Untitled",
-          content: contentRef.current || content,
-          author: getSession()?.name || undefined,
-        };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const resp = await createSharedNote(payload as any);
-        if (resp?.shareUrl) {
-          setShareUrlState(resp.shareUrl);
-          setShareMessage("Share link ready.");
-          return;
-        }
       } catch {
-        // server unavailable or returned error — fall back to local share
+        // handled below
       }
 
-      const result = shareLocalNote(noteId);
-      if (!result) {
-        throw new Error("Unable to create share link.");
-      }
-
-      setShareUrlState(result.shareUrl);
-      setShareMessage("Share link ready.");
+      throw new Error("Unable to create share link.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to create share link.";
       setShareMessage(message);
@@ -211,18 +183,18 @@ export default function NoteEditorPage() {
   };
 
   const handleArchiveToggle = () => {
-    if (!noteId || noteId === "new") return;
-    const updated = setNoteArchived(noteId, !isArchived);
-    setIsArchived(!isArchived);
-    if (updated) {
-      setShareMessage(updated.isArchived ? "Note archived." : "Note restored.");
-    }
+    const session = getSession();
+    if (!session?.token || !noteId || noteId === "new") return;
+    void archiveNote(session.token, noteId).then(() => {
+      setIsArchived(!isArchived);
+      setShareMessage(!isArchived ? "Note archived." : "Note restored.");
+    });
   };
 
   const handleDelete = () => {
-    if (!noteId || noteId === "new") return;
-    deleteLocalNote(noteId);
-    router.push("/notes");
+    const session = getSession();
+    if (!session?.token || !noteId || noteId === "new") return;
+    void deleteNote(session.token, noteId).then(() => router.push("/notes"));
   };
 
   if (notFound) {
@@ -236,6 +208,14 @@ export default function NoteEditorPage() {
             <Link href="/notes/new" className="btn-primary">New Note</Link>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex w-full h-full items-center justify-center p-8 text-gray-600">
+        Loading note...
       </div>
     );
   }

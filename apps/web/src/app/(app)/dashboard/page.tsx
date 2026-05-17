@@ -7,53 +7,31 @@ import { Plus, Search, FileText, Bell, AlertCircle } from "lucide-react";
 import { getSession } from "@/lib/localAuth";
 import { getNotes, getPreviewText } from "@/lib/api";
 import { getStoredAvatar } from "@/lib/localProfile";
-import { getLocalNotes, type LocalNote } from "@/lib/localNotes";
 
 export default function DashboardPage() {
-  const [name, setName] = useState("Guest");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [notes, setNotes] = useState<LocalNote[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [name, setName] = useState(() => getSession()?.name || "Guest");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getStoredAvatar());
+  const [notes, setNotes] = useState<any[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const sync = async () => {
       try {
-        setIsLoading(true);
+        setIsRefreshing(true);
         setError(null);
         const session = getSession();
         setName(session?.name || "Guest");
         setAvatarUrl(getStoredAvatar());
         
-        if (session?.token) {
-          try {
-            const serverNotes = await getNotes(session.token);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const mapped = (serverNotes as unknown as Array<Record<string, unknown>>).map((n) => ({
-              id: String(n['id']),
-              title: String(n['title'] ?? ''),
-              content: String(n['content'] ?? ''),
-              tags: ((n['tags'] || []) as Array<Record<string, unknown>>).map((t) => ({ id: String(t['id']), name: String(t['name']) })),
-              isArchived: Boolean(n['isArchived']),
-              isPublic: Boolean(n['isPublic']),
-              shareId: n['shareId'] ? String(n['shareId']) : null,
-              createdAt: String(n['createdAt'] ?? ''),
-              updatedAt: String(n['updatedAt'] ?? ''),
-            }));
-            setNotes(mapped);
-            return;
-          } catch (err) {
-            console.warn('Server notes unavailable:', err);
-            setError('Could not load notes from server, using local storage');
-          }
-        }
-        setNotes(getLocalNotes());
+        if (!session?.token) return;
+        const serverNotes = await getNotes(session.token);
+        setNotes(serverNotes as any[]);
       } catch (err) {
         console.error('Error syncing notes:', err);
         setError('Failed to load notes');
-        setNotes(getLocalNotes());
       } finally {
-        setIsLoading(false);
+        setIsRefreshing(false);
       }
     };
 
@@ -70,6 +48,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">Good morning, {name}.</h1>
           <p className="text-gray-600 text-lg">Here&apos;s what&apos;s happening with your notes.</p>
+          {isRefreshing && <p className="mt-2 text-xs text-gray-500">Syncing in the background...</p>}
         </div>
         
         <div className="flex gap-4 items-center">
@@ -108,12 +87,7 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {isLoading ? (
-        <div className="glass-card p-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-gray-600">Loading your notes...</p>
-        </div>
-      ) : recentNotes.length === 0 ? (
+      {recentNotes.length === 0 ? (
         <div className="glass-card p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 mx-auto mb-4">
             <FileText size={32} />
@@ -134,7 +108,7 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{note.title}</h3>
               <p className="text-sm text-gray-600 line-clamp-3 mb-4">{getPreviewText(note.content, 150)}</p>
               <div className="flex flex-wrap gap-2">
-                {note.tags.slice(0, 2).map((tag) => (
+                {(note.tags ?? []).slice(0, 2).map((tag: any) => (
                   <span key={tag.id} className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-700">{tag.name}</span>
                 ))}
               </div>

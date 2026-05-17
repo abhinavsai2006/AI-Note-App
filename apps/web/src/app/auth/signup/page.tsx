@@ -62,9 +62,7 @@ export default function SignupPage() {
       });
 
       setSuccess(true);
-      setTimeout(() => {
-        router.replace('/dashboard');
-      }, 1000);
+      router.replace('/dashboard');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
       setErrors({ submit: message });

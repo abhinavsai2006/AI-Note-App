@@ -21,8 +21,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     if (!process.env.DATABASE_URL) {
-      console.warn('DATABASE_URL not set — skipping Prisma client connect (file-backed fallback enabled)');
-      return;
+      throw new Error('DATABASE_URL is required for database-backed operation');
     }
 
     try {
@@ -34,12 +33,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         }),
       ]);
     } catch (err: any) {
-      console.error('\n[Resilience Mode] Prisma failed to connect proactively on startup.');
+      console.error('\nPrisma failed to connect on startup.');
       console.error('Please check that your DATABASE_URL is set correctly and the database is reachable.');
       if (process.env.DATABASE_URL) {
         console.error('DATABASE_URL (first 120 chars):', process.env.DATABASE_URL.slice(0, 120));
       }
       console.error('Original error:', err?.message ?? err);
+      throw err;
     }
   }
 

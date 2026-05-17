@@ -2,14 +2,22 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createLocalNote } from "@/lib/localNotes";
+import { createNote } from "@/lib/api";
+import { getSession } from "@/lib/localAuth";
 
 export default function NewNotePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const note = createLocalNote();
-    router.replace(`/notes/${note.id}`);
+    const session = getSession();
+    if (!session?.token) {
+      router.replace('/auth/login');
+      return;
+    }
+
+    void createNote(session.token, { title: 'Untitled Note', content: '' }).then((note) => {
+      router.replace(`/notes/${note.id}`);
+    });
   }, [router]);
 
   return (

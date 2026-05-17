@@ -15,19 +15,21 @@ function splitName(fullName: string) {
 }
 
 export default function SettingsPage() {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState("Alex");
-  const [lastName, setLastName] = useState("Developer");
-  const [email, setEmail] = useState("alex@noteflow.app");
+  const session = getSession();
+  const initialName = splitName(session?.name || "");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getStoredAvatar());
+  const [firstName, setFirstName] = useState(initialName.firstName || "");
+  const [lastName, setLastName] = useState(initialName.lastName || "");
+  const [email, setEmail] = useState(session?.email || "");
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const sync = () => {
       const session = getSession();
-      const nameParts = splitName(session?.name || "Alex Developer");
-      setFirstName(nameParts.firstName || "Alex");
-      setLastName(nameParts.lastName || "Developer");
-      setEmail(session?.email || "alex@noteflow.app");
+      const nameParts = splitName(session?.name || "");
+      setFirstName(nameParts.firstName || "");
+      setLastName(nameParts.lastName || "");
+      setEmail(session?.email || "");
       setAvatarUrl(getStoredAvatar());
     };
 
@@ -51,7 +53,7 @@ export default function SettingsPage() {
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault();
 
-    const displayName = [firstName.trim(), lastName.trim()].filter(Boolean).join(" ") || "Guest";
+    const displayName = [firstName.trim(), lastName.trim()].filter(Boolean).join(" ");
     updateSessionName(displayName);
     setStoredAvatar(avatarUrl);
     setStatus("Profile updated successfully.");
@@ -59,10 +61,10 @@ export default function SettingsPage() {
 
   const handleCancel = () => {
     const session = getSession();
-    const nameParts = splitName(session?.name || "Alex Developer");
-    setFirstName(nameParts.firstName || "Alex");
-    setLastName(nameParts.lastName || "Developer");
-    setEmail(session?.email || "alex@noteflow.app");
+    const nameParts = splitName(session?.name || "");
+    setFirstName(nameParts.firstName || "");
+    setLastName(nameParts.lastName || "");
+    setEmail(session?.email || "");
     setAvatarUrl(getStoredAvatar());
     setStatus(null);
   };

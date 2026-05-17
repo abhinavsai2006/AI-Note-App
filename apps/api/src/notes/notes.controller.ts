@@ -1,34 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Headers, UseGuards, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, NotFoundException, BadRequestException, Req } from '@nestjs/common';
 import { NotesService } from './notes.service';
-import { JwtService } from '@nestjs/jwt';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { ShareService } from '../share/share.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Request } from 'express';
 
 @Controller('notes')
 export class NotesController {
   constructor(
     private readonly notesService: NotesService,
     private readonly shareService: ShareService,
-    private readonly jwtService: JwtService,
   ) {}
 
   @Get()
-  async findAll(@Query('email') email?: string) {
+  @UseGuards(JwtAuthGuard)
+  async findAll(@Req() req: Request & { user?: { email?: string } }) {
     try {
-      return await this.notesService.findAll(email);
+      return await this.notesService.findAll(req.user?.email);
     } catch (error) {
       throw new BadRequestException('Failed to fetch notes');
     }
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string, @Req() req: Request & { user?: { email?: string } }) {
     if (!id) {
       throw new BadRequestException('Note ID is required');
     }
-    const note = await this.notesService.findOne(id);
+    const note = await this.notesService.findOne(id, req.user?.email);
     if (!note) {
       throw new NotFoundException(`Note with ID ${id} not found`);
     }
@@ -37,59 +38,45 @@ export class NotesController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@Body() createNoteDto: CreateNoteDto, @Headers('authorization') authorization?: string) {
-    // If an auth token is provided, extract email to associate the note with the user
-    if (authorization) {
-      try {
-        const token = authorization.replace(/^Bearer\s+/i, '');
-        const payload: any = this.jwtService.verify(token);
-        if (payload?.email) {
-          // attach user info to DTO
-          // @ts-ignore
-          createNoteDto.userEmail = payload.email;
-          // @ts-ignore
-          createNoteDto.userName = payload.name ?? payload.email.split('@')[0];
-        }
-      } catch {
-        // ignore invalid token — fallback to DTO as-is
-      }
-    }
+  async create(@Body() createNoteDto: CreateNoteDto, @Req() req: Request & { user?: { email?: string; name?: string } }) {
+    createNoteDto.userEmail = req.user?.email;
+    createNoteDto.userName = req.user?.name;
     return this.notesService.create(createNoteDto);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: string, @Body() updateNoteDto: UpdateNoteDto) {
+  async update(@Param('id') id: string, @Body() updateNoteDto: UpdateNoteDto, @Req() req: Request & { user?: { email?: string } }) {
     if (!id) {
       throw new BadRequestException('Note ID is required');
     }
-    return this.notesService.update(id, updateNoteDto);
+    return this.notesService.update(id, updateNoteDto, req.user?.email);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: Request & { user?: { email?: string } }) {
     if (!id) {
       throw new BadRequestException('Note ID is required');
     }
-    return this.notesService.remove(id);
+    return this.notesService.remove(id, req.user?.email);
   }
 
   @Post(':noteId/share')
   @UseGuards(JwtAuthGuard)
-  async share(@Param('noteId') noteId: string) {
+  async share(@Param('noteId') noteId: string, @Req() req: Request & { user?: { email?: string } }) {
     if (!noteId) {
       throw new BadRequestException('Note ID is required');
     }
-    return this.shareService.createShare(noteId);
+    return this.shareService.createShare(noteId, req.user?.email);
   }
 
   @Post(':noteId/generate-summary')
   @UseGuards(JwtAuthGuard)
-  async generateSummary(@Param('noteId') noteId: string) {
+  async generateSummary(@Param('noteId') noteId: string, @Req() req: Request & { user?: { email?: string } }) {
     if (!noteId) {
       throw new BadRequestException('Note ID is required');
     }
-    return this.notesService.generateSummary(noteId);
+    return this.notesService.generateSummary(noteId, req.user?.email);
   }
 }

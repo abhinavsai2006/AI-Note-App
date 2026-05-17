@@ -2,16 +2,25 @@
 
 import { FileText, Sparkles, Activity, Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { getLocalNotes, type LocalNote } from "@/lib/localNotes";
+import { getNotes } from "@/lib/api";
+import { getSession } from "@/lib/localAuth";
 
 export default function InsightsPage() {
-  const [notes, setNotes] = useState<LocalNote[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
 
   useEffect(() => {
-    const sync = () => setNotes(getLocalNotes());
+    const sync = async () => {
+      const session = getSession();
+      if (!session?.token) {
+        setNotes([]);
+        return;
+      }
+
+      const serverNotes = await getNotes(session.token);
+      setNotes(serverNotes as any[]);
+    };
+
     sync();
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
   }, []);
 
   const stats = useMemo(() => {
@@ -24,7 +33,7 @@ export default function InsightsPage() {
     const tagCounts = new Map<string, number>();
 
     notes.forEach((note) => {
-      note.tags.forEach((tag) => {
+      (note.tags ?? []).forEach((tag: { name: string }) => {
         tagCounts.set(tag.name, (tagCounts.get(tag.name) || 0) + 1);
       });
     });

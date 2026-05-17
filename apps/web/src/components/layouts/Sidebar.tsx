@@ -10,8 +10,8 @@ import { getStoredAvatar } from "@/lib/localProfile";
 
 export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
   const pathname = usePathname();
-  const [name, setName] = useState("Guest");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [name, setName] = useState(() => getSession()?.name || "Guest");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getStoredAvatar());
 
   useEffect(() => {
     const sync = () => {

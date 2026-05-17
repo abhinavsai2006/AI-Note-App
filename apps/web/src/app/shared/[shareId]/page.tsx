@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { getSharedNote } from "@/lib/api";
 import { FileText, Share2 } from "lucide-react";
-import { getSharedLocalNote } from "@/lib/localNotes";
 
 interface SharedNote {
   id: string;
@@ -36,22 +35,6 @@ export default function SharedNotePage() {
       if (!shareId) return;
       const inlineTitle = searchParams?.get("title") || "";
       const inlineContent = searchParams?.get("content") || "";
-
-      const localNote = getSharedLocalNote(shareId);
-      if (localNote) {
-        setNote({
-          id: localNote.id,
-          title: localNote.title,
-          content: localNote.content,
-          user: { name: searchParams?.get("author") || "Anonymous" },
-          tags: localNote.tags,
-          createdAt: localNote.createdAt,
-          updatedAt: localNote.updatedAt,
-          summary: localNote.summary ?? undefined,
-        });
-        setLoading(false);
-        return;
-      }
 
       if (inlineTitle || inlineContent) {
         setNote({

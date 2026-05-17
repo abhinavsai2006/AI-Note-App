@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, FileText, Sparkles, Archive } from "lucide-react";
-import { getLocalNotes, type LocalNote } from "@/lib/localNotes";
 import { getSession } from "@/lib/localAuth";
 import { getNotes, getPreviewText } from "@/lib/api";
 
@@ -13,8 +12,9 @@ type Tag = {
 };
 
 export default function NotesPage() {
-  const [notes, setNotes] = useState<LocalNote[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showArchived, setShowArchived] = useState(false);
@@ -22,33 +22,19 @@ export default function NotesPage() {
 
   useEffect(() => {
     const sync = async () => {
+      setIsRefreshing(true);
       const session = getSession();
-      if (session?.token) {
-        try {
-          const serverNotes = await getNotes(session.token);
-          // transform server notes to LocalNote shape when possible
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const mapped = (serverNotes as unknown as Array<Record<string, unknown>>).map((n) => ({
-            id: String(n['id']),
-            title: String(n['title'] ?? ''),
-            content: String(n['content'] ?? ''),
-            tags: ((n['tags'] || []) as Array<Record<string, unknown>>).map((t) => ({ id: String(t['id']), name: String(t['name']) })),
-            isArchived: Boolean(n['isArchived']),
-            isPublic: Boolean(n['isPublic']),
-            shareId: n['shareId'] ? String(n['shareId']) : null,
-            createdAt: String(n['createdAt'] ?? ''),
-            updatedAt: String(n['updatedAt'] ?? ''),
-            summary: String(n['summary'] ?? ''),
-            actionItems: (n['actionItems'] || []) as string[],
-            suggestedTitle: n['suggestedTitle'] ? String(n['suggestedTitle']) : null,
-          }));
-          setNotes(mapped);
-          return;
-        } catch {
-          /* fallback to local */
-        }
+      if (!session?.token) {
+        setNotes([]);
+        setTags([]);
+        setIsRefreshing(false);
+        return;
       }
-      setNotes(getLocalNotes());
+
+      const serverNotes = await getNotes(session.token);
+      const mapped = serverNotes as any[];
+      setNotes(mapped);
+      setIsRefreshing(false);
     };
     sync();
     window.addEventListener("storage", sync);
@@ -57,13 +43,13 @@ export default function NotesPage() {
 
   useEffect(() => {
     const uniqueTags = new Map<string, Tag>();
-    notes.forEach((note) => note.tags.forEach((tag) => uniqueTags.set(tag.id, tag)));
+    notes.forEach((note) => (note.tags ?? []).forEach((tag: Tag) => uniqueTags.set(tag.id, tag)));
     setTags(Array.from(uniqueTags.values()));
   }, [notes]);
 
   const filteredNotes = [...notes]
     .filter((note) => (showArchived ? true : !note.isArchived))
-    .filter((note) => (selectedTag ? note.tags.some((tag) => tag.id === selectedTag) : true))
+    .filter((note) => (selectedTag ? (note.tags ?? []).some((tag: Tag) => tag.id === selectedTag) : true))
     .filter((note) => {
       const query = searchQuery.trim().toLowerCase();
       if (!query) return true;
@@ -142,6 +128,7 @@ export default function NotesPage() {
           <div>
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900">All Notes</h1>
             <p className="text-gray-600 text-sm mt-1">Manage your notes and insights</p>
+            {isRefreshing && <p className="text-xs text-gray-500 mt-1">Syncing in the background...</p>}
           </div>
 
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
@@ -206,12 +193,12 @@ export default function NotesPage() {
 
                     <div className="flex justify-between items-center mt-auto pt-4 border-t border-surface-border/50">
                       <div className="flex gap-2 overflow-hidden flex-wrap">
-                        {note.tags?.slice(0, 2).map((tag: Tag) => (
+                        {(note.tags ?? []).slice(0, 2).map((tag: Tag) => (
                           <span key={tag.id} className="text-xs px-2 py-1 rounded bg-gray-100 border border-gray-300 text-gray-700">
                             {tag.name}
                           </span>
                         ))}
-                        {note.tags?.length > 2 && <span className="text-xs px-2 py-1 text-gray-600">+{note.tags.length - 2}</span>}
+                        {(note.tags ?? []).length > 2 && <span className="text-xs px-2 py-1 text-gray-600">+{(note.tags ?? []).length - 2}</span>}
                       </div>
                       <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                         {new Date(note.updatedAt).toLocaleDateString()}

@@ -226,14 +226,6 @@ export async function getSharedNote(shareId: string) {
   return requestJson(`${API_BASE}/shared/${shareId}`);
 }
 
-export async function createSharedNote(data: { title: string; content: string; author?: string }) {
-  return requestJson(`${API_BASE}/shared`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-}
-
 export async function getInsightsStats(token: string) {
   return requestJson(`${API_BASE}/insights/stats`, {
     headers: { Authorization: `Bearer ${token}` },
