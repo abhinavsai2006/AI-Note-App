@@ -1,14 +1,18 @@
 /**
  * NoteFlow API E2E Automated Verification Suite
- * Usage: node test-apis.js [API_URL]
+ * Usage: node test-apis.js [API_URL] [--vercel-bypass]
  * Default API_URL: http://localhost:3001
  */
 
 const http = require('http');
 const https = require('https');
 const { URL } = require('url');
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
-const API_URL = (process.argv[2] || 'http://localhost:3001').replace(/\/$/, '');
+const USE_VERCEL_BYPASS = process.argv.includes('--vercel-bypass');
+const API_URL = (process.argv.filter(arg => arg !== '--vercel-bypass')[2] || 'http://localhost:3001').replace(/\/$/, '');
 const isHttps = API_URL.startsWith('https');
 const requestModule = isHttps ? https : http;
 
@@ -24,10 +28,66 @@ const testEmail = `test-${Math.floor(Math.random() * 100000)}@noteflow-verify.co
 const testPassword = 'VerifySecurePassword123!';
 const testName = 'Verification Bot';
 
-// Helper to make HTTP/S requests using native node.js
-function makeRequest(method, path, data = null, headers = {}) {
+// Helper to make HTTP/S requests using native node.js or Vercel CLI bypass
+function makeRequest(method, urlPath, data = null, headers = {}) {
+  if (USE_VERCEL_BYPASS) {
+    return new Promise((resolve) => {
+      try {
+        let cmd = `npx vercel curl "${urlPath}" --deployment "${API_URL}"`;
+        let args = ['--'];
+
+        args.push('--request', method.toUpperCase());
+
+        for (const [key, value] of Object.entries(headers)) {
+          args.push('--header', `"${key}: ${value}"`);
+        }
+
+        let tempFile = null;
+        if (data) {
+          tempFile = `temp-payload-${Math.floor(Math.random() * 1000000)}.json`;
+          fs.writeFileSync(tempFile, JSON.stringify(data), 'utf-8');
+          args.push('--header', '"Content-Type: application/json"');
+          args.push('--data', `@${tempFile}`);
+        }
+
+        const fullCmd = `${cmd} ${args.join(' ')}`;
+
+        // Execute vercel curl synchronously to bypass protection using authenticated context
+        const output = execSync(fullCmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
+
+        if (tempFile && fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+
+        let parsedJson = null;
+        try {
+          parsedJson = JSON.parse(output);
+        } catch (e) {
+          // not json
+        }
+
+        // Vercel curl returns raw body on success. If it's empty or contains nested error, we parse it.
+        const code = parsedJson && parsedJson.statusCode ? parsedJson.statusCode : 200;
+
+        resolve({
+          statusCode: code,
+          headers: { 'content-type': 'application/json' },
+          rawBody: output,
+          body: parsedJson !== null ? parsedJson : output
+        });
+      } catch (error) {
+        resolve({
+          statusCode: error.status || 500,
+          headers: {},
+          rawBody: error.message,
+          body: { message: error.message }
+        });
+      }
+    });
+  }
+
   return new Promise((resolve, reject) => {
-    const urlString = `${API_URL}${path}`;
+    const urlString = `${API_URL}${urlPath}`;
     let parsedUrl;
     try {
       parsedUrl = new URL(urlString);
@@ -84,7 +144,7 @@ function makeRequest(method, path, data = null, headers = {}) {
 
     req.on('timeout', () => {
       req.destroy();
-      reject(new Error(`Request to ${path} timed out after 10 seconds`));
+      reject(new Error(`Request to ${urlPath} timed out after 10 seconds`));
     });
 
     req.on('error', (e) => {
