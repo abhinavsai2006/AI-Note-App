@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { path: stri
   return proxyRequest(req, params.path);
 }
 
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
@@ -50,7 +50,7 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
   headers.delete('connection');
 
   try {
-    let body: any = undefined;
+    let body: BodyInit | undefined = undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       const contentType = req.headers.get('content-type');
       if (contentType?.includes('application/json')) {

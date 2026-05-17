@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "concurrently \"cd apps/web && npm run dev\" \"cd apps/api && npm run start:dev\"",
     "build": "npm run build:api && npm run build:web",
-    "build:web": "cd apps/web && npm ci && npm run build",
-    "build:api": "cd apps/api && npm ci && npm run build",
+    "build:web": "cd apps/web && npm run build",
+    "build:api": "cd apps/api && npm run build",
     "start": "npm run start:web",
     "start:web": "cd apps/web && npm run start",
     "start:api": "cd apps/api && npm run start:prod",
