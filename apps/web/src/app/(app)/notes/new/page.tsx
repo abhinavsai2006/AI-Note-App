@@ -14,10 +14,22 @@ export default function NewNotePage() {
       router.replace('/auth/login');
       return;
     }
-
-    void createNote(session.token, { title: 'Untitled Note', content: '' }).then((note) => {
-      router.replace(`/notes/${note.id}`);
-    });
+    (async () => {
+      try {
+        const note = await createNote(session.token, { title: 'Untitled Note', content: '' });
+        if (note?.id) {
+          router.replace(`/notes/${note.id}`);
+          return;
+        }
+        // fallback
+        router.replace('/notes');
+      } catch (err) {
+        // Network or API error - log and navigate back to notes list
+        // eslint-disable-next-line no-console
+        console.error('Failed to create note:', err);
+        router.replace('/notes');
+      }
+    })();
   }, [router]);
 
   return (
