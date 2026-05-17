@@ -115,7 +115,9 @@ export async function getNotes(token?: string, params: SearchParams = {}) {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
   if (params.tag) query.set("tag", params.tag);
-  if (params.sort) query.set("sort", params.sort);
+  if (params.sort) query.set("sort", params.sort);  # In PowerShell
+  $response = Invoke-WebRequest -Uri "https://api-snowy-rho-50.vercel.app/api/notes" -TimeoutSec 10 -ErrorAction Continue
+  $response.StatusCode
   if (params.archive !== undefined) query.set("archive", String(params.archive));
 
   const headers: Record<string, string> = {};

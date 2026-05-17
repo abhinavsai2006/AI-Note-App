@@ -34,7 +34,16 @@ export async function OPTIONS(req: NextRequest) {
 async function proxyRequest(req: NextRequest, pathSegments: string[]) {
   const path = pathSegments.join('/');
   const searchParams = req.nextUrl.searchParams.toString();
-  const targetUrl = `https://api-snowy-rho-50.vercel.app/api/${path}${searchParams ? `?${searchParams}` : ''}`;
+  
+  // Use environment variable for API URL, with fallback
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+  const targetUrl = `${apiBase}/api/${path}${searchParams ? `?${searchParams}` : ''}`;
+
+  console.log('[Proxy] Forwarding request:', {
+    from: req.nextUrl.pathname,
+    to: targetUrl,
+    method: req.method,
+  });
 
   const headers = new Headers(req.headers);
   headers.delete('host');
@@ -67,7 +76,14 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error('Proxy error:', error);
-    return NextResponse.json({ error: 'Failed to proxy request' }, { status: 500 });
+    console.error('[Proxy] Error forwarding request:', {
+      target: targetUrl,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json(
+      { error: 'Failed to proxy request', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }
+

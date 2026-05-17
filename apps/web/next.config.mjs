@@ -10,12 +10,19 @@ const nextConfig = {
 	async rewrites() {
 		const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-		return [
-			{
-				source: "/api/:path*",
-				destination: `${apiBase}/:path*`,
-			},
-		];
+		return {
+			beforeFiles: [
+				// Let API route handlers process /api/* first
+				// Route handlers at /api/proxy/[...path] will handle /api/proxy/*
+				// Other /api/* requests will be rewritten below
+			],
+			afterFiles: [
+				{
+					source: "/api/:path*",
+					destination: `${apiBase}/:path*`,
+				},
+			],
+		};
 	},
 };
 
