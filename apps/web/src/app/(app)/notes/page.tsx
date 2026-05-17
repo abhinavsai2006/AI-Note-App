@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Plus, Search, FileText, Sparkles, Archive } from "lucide-react";
 import { getLocalNotes, type LocalNote } from "@/lib/localNotes";
 import { getSession } from "@/lib/localAuth";
-import { getNotes } from "@/lib/api";
+import { getNotes, getPreviewText } from "@/lib/api";
 
 type Tag = {
   id: string;
@@ -202,7 +202,7 @@ export default function NotesPage() {
                       )}
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{note.title || "Untitled"}</h3>
-                    <p className="text-gray-600 text-sm mb-6 flex-1 line-clamp-3">{note.content || "No content..."}</p>
+                    <p className="text-gray-600 text-sm mb-6 flex-1 line-clamp-3">{getPreviewText(note.content, 150)}</p>
 
                     <div className="flex justify-between items-center mt-auto pt-4 border-t border-surface-border/50">
                       <div className="flex gap-2 overflow-hidden flex-wrap">
