@@ -22,8 +22,8 @@ export default function Providers({ children }: { children: ReactNode }) {
       console.error('Unhandled promise rejection:', ev.reason);
     };
 
-    window.addEventListener('unhandledrejection', onUnhandledRejection as any);
-    return () => window.removeEventListener('unhandledrejection', onUnhandledRejection as any);
+    window.addEventListener('unhandledrejection', onUnhandledRejection);
+    return () => window.removeEventListener('unhandledrejection', onUnhandledRejection);
   }, []);
 
   return (
