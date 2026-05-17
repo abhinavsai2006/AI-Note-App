@@ -10,13 +10,4 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-
-  @All('*')
-  notFound(@Req() req: Request) {
-    return {
-      statusCode: 404,
-      message: `Route ${req.method} ${req.path} not found`,
-      timestamp: new Date().toISOString(),
-    };
-  }
 }

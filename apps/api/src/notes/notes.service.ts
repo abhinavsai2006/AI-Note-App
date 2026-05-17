@@ -173,7 +173,7 @@ export class NotesService {
 
   async findOne(id: string) {
     try {
-      return this.prisma.note.findUnique({
+      return await this.prisma.note.findUnique({
         where: { id },
         include: { aiSummaries: true, tags: { include: { tag: true } }, user: true },
       });
@@ -191,7 +191,7 @@ export class NotesService {
     if (isPublic !== undefined) data.isPublic = isPublic;
 
     try {
-      return this.prisma.note.update({ where: { id }, data });
+      return await this.prisma.note.update({ where: { id }, data });
     } catch {
       const updated = await this.updateFallbackNote(id, {
         ...(title !== undefined ? { title } : {}),
@@ -211,7 +211,7 @@ export class NotesService {
 
   async remove(id: string) {
     try {
-      return this.prisma.note.delete({ where: { id } });
+      return await this.prisma.note.delete({ where: { id } });
     } catch {
       const notes = await this.readStore();
       const index = notes.findIndex((item) => item.id === id);

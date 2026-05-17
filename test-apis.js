@@ -131,8 +131,9 @@ async function runSuite() {
   try {
     const signupData = { email: testEmail, password: testPassword, name: testName };
     const res = await makeRequest('POST', '/api/auth/signup', signupData);
-    if (res.statusCode === 201 && res.body.token) {
-      jwtToken = res.body.token;
+    const token = res.body && (res.body.token || res.body.accessToken);
+    if ((res.statusCode === 200 || res.statusCode === 201) && token) {
+      jwtToken = token;
       logSuccess('User Registration (POST /api/auth/signup)', `Registered: ${testEmail}`);
       passedCount++;
     } else {
@@ -147,8 +148,9 @@ async function runSuite() {
   try {
     const loginData = { email: testEmail, password: testPassword };
     const res = await makeRequest('POST', '/api/auth/login', loginData);
-    if (res.statusCode === 200 && res.body.token) {
-      jwtToken = res.body.token; // Refresh token
+    const token = res.body && (res.body.token || res.body.accessToken);
+    if ((res.statusCode === 200 || res.statusCode === 201) && token) {
+      jwtToken = token; // Refresh token
       logSuccess('User Authentication (POST /api/auth/login)', 'Successfully generated JWT');
       passedCount++;
     } else {

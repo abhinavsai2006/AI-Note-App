@@ -92,8 +92,8 @@ export async function createServer() {
   return expressApp;
 }
 
-// When run directly (node dist/main.js), start a normal server
-if (require.main === module) {
+// When run locally (not under Vercel Serverless), start a normal listening server
+if (!process.env.VERCEL) {
   (async () => {
     const expressApp = await createServer();
     const port = Number(process.env.PORT ?? 3001);
