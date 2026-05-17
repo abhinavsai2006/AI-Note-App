@@ -15,7 +15,6 @@ export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
   // the real values on the client inside an effect.
   const [name, setName] = useState("Guest");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const sync = () => {
@@ -24,8 +23,6 @@ export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
       setAvatarUrl(getStoredAvatar());
     };
 
-    // mark hydrated first so client render matches server initial markup
-    setHydrated(true);
     sync();
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
@@ -85,8 +82,7 @@ export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
             {avatarUrl ? (
               <Image src={avatarUrl} alt="User avatar" fill className="object-cover" unoptimized />
             ) : (
-              // Only show the initial after hydration to avoid hydration mismatch
-              hydrated ? name.charAt(0).toUpperCase() : null
+              name.charAt(0).toUpperCase()
             )}
           </div>
           <div className="min-w-0">
