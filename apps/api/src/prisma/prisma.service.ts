@@ -14,16 +14,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     try {
       await this.$connect();
     } catch (err: any) {
-      // Helpful error message for DB connectivity issues
-      console.error('\nPrisma failed to connect to the database.');
-      console.error('Please check that your DATABASE_URL is set in apps/api/.env and that the database is reachable.');
+      // Catch connection errors on startup without throwing
+      // Prisma Client will automatically retry connecting lazily on the first query.
+      // This prevents startup hangs during Vercel cold starts.
+      console.error('\n[Resilience Mode] Prisma failed to connect proactively on startup.');
+      console.error('Please check that your DATABASE_URL is set correctly and the database is reachable.');
       if (process.env.DATABASE_URL) {
         console.error('DATABASE_URL (first 120 chars):', process.env.DATABASE_URL.slice(0, 120));
-      } else {
-        console.error('DATABASE_URL is not set.');
       }
       console.error('Original error:', err?.message ?? err);
-      throw err;
     }
   }
 
