@@ -8,10 +8,23 @@ import { getSession, logoutLocalAuth } from "@/lib/localAuth";
 import { getNotes, getPreviewText } from "@/lib/api";
 import { getStoredAvatar } from "@/lib/localProfile";
 
+type DashboardTag = {
+  id: string;
+  name: string;
+};
+
+type DashboardNote = {
+  id: string;
+  title: string;
+  content: string;
+  updatedAt: string;
+  tags?: DashboardTag[];
+};
+
 export default function DashboardPage() {
   const [name, setName] = useState(() => getSession()?.name || "Guest");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getStoredAvatar());
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<DashboardNote[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,7 +37,7 @@ export default function DashboardPage() {
         
         if (!session?.token) return;
         const serverNotes = await getNotes(session.token);
-        setNotes(serverNotes as any[]);
+        setNotes(serverNotes as DashboardNote[]);
       } catch (err) {
         console.error('Error syncing notes:', err);
         const message = err instanceof Error ? err.message : '';
@@ -109,7 +122,7 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{note.title}</h3>
               <p className="text-sm text-gray-600 line-clamp-3 mb-4">{getPreviewText(note.content, 150)}</p>
               <div className="flex flex-wrap gap-2">
-                {(note.tags ?? []).slice(0, 2).map((tag: any) => (
+                {(note.tags ?? []).slice(0, 2).map((tag) => (
                   <span key={tag.id} className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-700">{tag.name}</span>
                 ))}
               </div>

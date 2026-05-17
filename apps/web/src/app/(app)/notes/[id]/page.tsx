@@ -37,6 +37,22 @@ async function withTimeout<T>(promise: Promise<T>, ms: number, message: string):
   }
 }
 
+type EditorNoteSummary = {
+  summary?: string | null;
+  action_items?: string[];
+  suggested_title?: string | null;
+};
+
+type EditorNote = {
+  id: string;
+  title: string;
+  content: string;
+  isArchived: boolean;
+  summary?: string | EditorNoteSummary | null;
+  actionItems?: string[];
+  suggestedTitle?: string | null;
+};
+
 export default function NoteEditorPage() {
   const params = useParams();
   const router = useRouter();
@@ -71,18 +87,28 @@ export default function NoteEditorPage() {
 
     setLoading(true);
     getNote(session.token, noteId)
-      .then((note: any) => {
+      .then((note) => {
+        const typedNote = note as EditorNote;
         setNotFound(false);
-        setTitle(note.title || "Untitled Note");
-        setContent(note.content || "");
-        contentRef.current = note.content || "";
-        setIsArchived(Boolean(note.isArchived));
+        setTitle(typedNote.title || "Untitled Note");
+        setContent(typedNote.content || "");
+        contentRef.current = typedNote.content || "";
+        setIsArchived(Boolean(typedNote.isArchived));
         setAiResult(
-          note.summary
+          typedNote.summary
             ? {
-                summary: note.summary.summary ?? note.summary ?? "",
-                action_items: note.summary.action_items ?? note.actionItems ?? [],
-                suggested_title: note.summary.suggested_title ?? note.suggestedTitle ?? note.title,
+                summary:
+                  typeof typedNote.summary === 'string'
+                    ? typedNote.summary
+                    : typedNote.summary?.summary ?? "",
+                action_items:
+                  typeof typedNote.summary === 'string'
+                    ? typedNote.actionItems ?? []
+                    : typedNote.summary?.action_items ?? typedNote.actionItems ?? [],
+                suggested_title:
+                  typeof typedNote.summary === 'string'
+                    ? typedNote.suggestedTitle ?? typedNote.title
+                    : typedNote.summary?.suggested_title ?? typedNote.suggestedTitle ?? typedNote.title,
               }
             : null
         );

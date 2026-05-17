@@ -11,8 +11,24 @@ type Tag = {
   name: string;
 };
 
+type NotesPageSummary = {
+  summary?: string | null;
+  action_items?: string[];
+  suggested_title?: string | null;
+};
+
+type NotesPageNote = {
+  id: string;
+  title: string;
+  content: string;
+  updatedAt: string;
+  isArchived: boolean;
+  tags?: Tag[];
+  summary?: string | NotesPageSummary | null;
+};
+
 export default function NotesPage() {
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<NotesPageNote[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
@@ -30,7 +46,7 @@ export default function NotesPage() {
         }
 
         const serverNotes = await getNotes(session.token);
-        const mapped = serverNotes as any[];
+  const mapped = serverNotes as NotesPageNote[];
         setNotes(mapped);
       } catch (err) {
         const message = err instanceof Error ? err.message : '';
@@ -49,13 +65,13 @@ export default function NotesPage() {
 
   useEffect(() => {
     const uniqueTags = new Map<string, Tag>();
-    notes.forEach((note) => (note.tags ?? []).forEach((tag: Tag) => uniqueTags.set(tag.id, tag)));
+    notes.forEach((note) => (note.tags ?? []).forEach((tag) => uniqueTags.set(tag.id, tag)));
     setTags(Array.from(uniqueTags.values()));
   }, [notes]);
 
   const filteredNotes = [...notes]
     .filter((note) => (showArchived ? true : !note.isArchived))
-    .filter((note) => (selectedTag ? (note.tags ?? []).some((tag: Tag) => tag.id === selectedTag) : true))
+    .filter((note) => (selectedTag ? (note.tags ?? []).some((tag) => tag.id === selectedTag) : true))
     .filter((note) => {
       const query = searchQuery.trim().toLowerCase();
       if (!query) return true;
@@ -198,7 +214,7 @@ export default function NotesPage() {
 
                     <div className="flex justify-between items-center mt-auto pt-4 border-t border-surface-border/50">
                       <div className="flex gap-2 overflow-hidden flex-wrap">
-                        {(note.tags ?? []).slice(0, 2).map((tag: Tag) => (
+                        {(note.tags ?? []).slice(0, 2).map((tag) => (
                           <span key={tag.id} className="text-xs px-2 py-1 rounded bg-gray-100 border border-gray-300 text-gray-700">
                             {tag.name}
                           </span>

@@ -5,8 +5,21 @@ import { useEffect, useMemo, useState } from "react";
 import { getNotes } from "@/lib/api";
 import { getSession } from "@/lib/localAuth";
 
+type InsightTag = {
+  id: string;
+  name: string;
+};
+
+type InsightNote = {
+  id: string;
+  title: string;
+  updatedAt: string;
+  summary?: unknown;
+  tags?: InsightTag[];
+};
+
 export default function InsightsPage() {
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<InsightNote[]>([]);
 
   useEffect(() => {
     const sync = async () => {
@@ -17,7 +30,7 @@ export default function InsightsPage() {
       }
 
       const serverNotes = await getNotes(session.token);
-      setNotes(serverNotes as any[]);
+      setNotes(serverNotes as InsightNote[]);
     };
 
     sync();
@@ -33,7 +46,7 @@ export default function InsightsPage() {
     const tagCounts = new Map<string, number>();
 
     notes.forEach((note) => {
-      (note.tags ?? []).forEach((tag: { name: string }) => {
+      (note.tags ?? []).forEach((tag) => {
         tagCounts.set(tag.name, (tagCounts.get(tag.name) || 0) + 1);
       });
     });
