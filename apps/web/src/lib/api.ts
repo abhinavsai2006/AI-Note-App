@@ -1,9 +1,6 @@
-// API configuration for direct backend access.
-const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/$/, "");
-const getApiBase = () => {
-  return rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
-};
-export const API_BASE = getApiBase();
+// API configuration - use local proxy routes (rewritten to backend by Next.js)
+// The rewrites in next.config.mjs will proxy /api/* to the backend API
+const API_BASE = "/api";
 
 export function stripHtmlTags(html: string): string {
   if (!html) return "";
