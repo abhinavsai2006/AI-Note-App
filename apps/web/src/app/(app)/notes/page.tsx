@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, FileText, Sparkles, Archive } from "lucide-react";
-import { getSession } from "@/lib/localAuth";
+import { getSession, logoutLocalAuth } from "@/lib/localAuth";
 import { getNotes, getPreviewText } from "@/lib/api";
 
 type Tag = {
@@ -14,7 +14,6 @@ type Tag = {
 export default function NotesPage() {
   const [notes, setNotes] = useState<any[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [showArchived, setShowArchived] = useState(false);
@@ -22,19 +21,26 @@ export default function NotesPage() {
 
   useEffect(() => {
     const sync = async () => {
-      setIsRefreshing(true);
-      const session = getSession();
-      if (!session?.token) {
-        setNotes([]);
-        setTags([]);
-        setIsRefreshing(false);
-        return;
-      }
+      try {
+        const session = getSession();
+        if (!session?.token) {
+          setNotes([]);
+          setTags([]);
+          return;
+        }
 
-      const serverNotes = await getNotes(session.token);
-      const mapped = serverNotes as any[];
-      setNotes(mapped);
-      setIsRefreshing(false);
+        const serverNotes = await getNotes(session.token);
+        const mapped = serverNotes as any[];
+        setNotes(mapped);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : '';
+        if (message.includes('401') || message.includes('Unauthorized')) {
+          logoutLocalAuth();
+          window.location.replace('/auth/login');
+          return;
+        }
+        setNotes([]);
+      }
     };
     sync();
     window.addEventListener("storage", sync);
@@ -128,7 +134,6 @@ export default function NotesPage() {
           <div>
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900">All Notes</h1>
             <p className="text-gray-600 text-sm mt-1">Manage your notes and insights</p>
-            {isRefreshing && <p className="text-xs text-gray-500 mt-1">Syncing in the background...</p>}
           </div>
 
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Plus, Search, FileText, Bell, AlertCircle } from "lucide-react";
-import { getSession } from "@/lib/localAuth";
+import { getSession, logoutLocalAuth } from "@/lib/localAuth";
 import { getNotes, getPreviewText } from "@/lib/api";
 import { getStoredAvatar } from "@/lib/localProfile";
 
@@ -12,13 +12,11 @@ export default function DashboardPage() {
   const [name, setName] = useState(() => getSession()?.name || "Guest");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getStoredAvatar());
   const [notes, setNotes] = useState<any[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const sync = async () => {
       try {
-        setIsRefreshing(true);
         setError(null);
         const session = getSession();
         setName(session?.name || "Guest");
@@ -29,9 +27,13 @@ export default function DashboardPage() {
         setNotes(serverNotes as any[]);
       } catch (err) {
         console.error('Error syncing notes:', err);
+        const message = err instanceof Error ? err.message : '';
+        if (message.includes('401') || message.includes('Unauthorized')) {
+          logoutLocalAuth();
+          window.location.replace('/auth/login');
+          return;
+        }
         setError('Failed to load notes');
-      } finally {
-        setIsRefreshing(false);
       }
     };
 
@@ -48,7 +50,6 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">Good morning, {name}.</h1>
           <p className="text-gray-600 text-lg">Here&apos;s what&apos;s happening with your notes.</p>
-          {isRefreshing && <p className="mt-2 text-xs text-gray-500">Syncing in the background...</p>}
         </div>
         
         <div className="flex gap-4 items-center">
