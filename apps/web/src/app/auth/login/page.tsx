@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, Mail, Lock } from "lucide-react";
-import { getSession, signInAccount } from "@/lib/localAuth";
+import { login } from "@/lib/api";
+import { getSession, saveSession } from "@/lib/localAuth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +26,15 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signInAccount({ email, password });
+      const normalizedEmail = email.trim().toLowerCase();
+      const response = await login(normalizedEmail, password);
+      saveSession({
+        token: response.accessToken || response.token,
+        refreshToken: response.refreshToken,
+        email: response.user?.email || normalizedEmail,
+        name: response.user?.name || "",
+        createdAt: new Date().toISOString(),
+      });
       router.replace("/dashboard");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to sign in.";

@@ -1,11 +1,6 @@
-// API configuration with fallback for development
-// In production, NEXT_PUBLIC_API_URL must be set to the backend URL.
+// API configuration for direct backend access.
 const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/$/, "");
 const getApiBase = () => {
-  // Use local proxy in production to bypass CORS
-  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
-    return "/api/proxy";
-  }
   return rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
 };
 export const API_BASE = getApiBase();
@@ -55,9 +50,11 @@ export type SearchParams = {
   archive?: boolean;
 };
 
-async function requestJson(url: string, options: RequestInit = {}) {
+const DEFAULT_REQUEST_TIMEOUT_MS = 15000;
+
+async function requestJson(url: string, options: RequestInit = {}, timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   
   try {
     const res = await fetch(url, { ...options, signal: controller.signal });

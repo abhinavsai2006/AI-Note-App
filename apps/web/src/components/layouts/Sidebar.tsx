@@ -10,8 +10,12 @@ import { getStoredAvatar } from "@/lib/localProfile";
 
 export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
   const pathname = usePathname();
-  const [name, setName] = useState(() => getSession()?.name || "Guest");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getStoredAvatar());
+  // Avoid reading localStorage/session during initial render to keep server and
+  // client HTML the same. Initialize with a stable fallback and hydrate
+  // the real values on the client inside an effect.
+  const [name, setName] = useState("Guest");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const sync = () => {
@@ -20,6 +24,8 @@ export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
       setAvatarUrl(getStoredAvatar());
     };
 
+    // mark hydrated first so client render matches server initial markup
+    setHydrated(true);
     sync();
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
@@ -79,7 +85,8 @@ export default function Sidebar({ mobileOpen }: { mobileOpen?: boolean }) {
             {avatarUrl ? (
               <Image src={avatarUrl} alt="User avatar" fill className="object-cover" unoptimized />
             ) : (
-              name.charAt(0).toUpperCase()
+              // Only show the initial after hydration to avoid hydration mismatch
+              hydrated ? name.charAt(0).toUpperCase() : null
             )}
           </div>
           <div className="min-w-0">

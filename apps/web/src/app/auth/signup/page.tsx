@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, Mail, Lock, User } from "lucide-react";
-import { createAccount, getSession } from "@/lib/localAuth";
+import { signup } from "@/lib/api";
+import { getSession, saveSession } from "@/lib/localAuth";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -55,10 +56,14 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await createAccount({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+      const normalizedEmail = formData.email.trim().toLowerCase();
+      const response = await signup(normalizedEmail, formData.password, formData.name.trim());
+      saveSession({
+        token: response.accessToken || response.token,
+        refreshToken: response.refreshToken,
+        email: response.user?.email || normalizedEmail,
+        name: response.user?.name || formData.name.trim(),
+        createdAt: new Date().toISOString(),
       });
 
       setSuccess(true);

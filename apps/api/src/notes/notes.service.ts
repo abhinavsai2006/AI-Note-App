@@ -144,25 +144,19 @@ export class NotesService {
 Return valid JSON with keys: summary (string), action_items (array of strings), suggested_title (string).
 Do not include any extra commentary. Note content follows:\n\n${stripHtml(note.content)}`;
 
-    let parsed: { summary?: string; action_items?: string[]; suggested_title?: string } = {};
-
     if (!process.env.OPENROUTER_API_KEY) {
-      // Fallback simple summary when no API key is configured (useful for local testing)
-      const text = stripHtml(note.content || '');
-      parsed.summary = text.length > 300 ? text.slice(0, 300) + '…' : text;
-      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-      parsed.action_items = lines.filter((l) => /^(-|\*|\d+\.)\s+/.test(l) || /\b(todo|fix|implement|add|update)\b/i.test(l)).slice(0, 8);
-      parsed.suggested_title = note.title || undefined;
-    } else {
-      const aiResponse = await this.aiService.create({ prompt });
+      throw new InternalServerErrorException('OPENROUTER_API_KEY is not configured');
+    }
 
-      try {
-        parsed = JSON.parse(aiResponse.content ?? '{}');
-      } catch {
-        parsed.summary = aiResponse.content ?? '';
-        parsed.action_items = [];
-        parsed.suggested_title = undefined;
-      }
+    let parsed: { summary?: string; action_items?: string[]; suggested_title?: string } = {};
+    const aiResponse = await this.aiService.create({ prompt });
+
+    try {
+      parsed = JSON.parse(aiResponse.content ?? '{}');
+    } catch {
+      parsed.summary = aiResponse.content ?? '';
+      parsed.action_items = [];
+      parsed.suggested_title = undefined;
     }
 
     const modelName = (typeof (global as any).aiResponse !== 'undefined' ? (global as any).aiResponse?.model : undefined) ?? process.env.OPENROUTER_MODEL ?? 'local-fallback';

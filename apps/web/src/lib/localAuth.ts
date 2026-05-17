@@ -34,6 +34,10 @@ export function getSession() {
   return readStorage<StoredSession | null>(SESSION_KEY, null);
 }
 
+export function saveSession(session: StoredSession) {
+  writeStorage(SESSION_KEY, session);
+}
+
 export function logoutLocalAuth() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(SESSION_KEY);
@@ -51,35 +55,4 @@ export function updateSessionName(name: string) {
     ...session,
     name: nextName,
   });
-}
-
-import { signup, login } from "@/lib/api";
-
-export async function createAccount(input: { name: string; email: string; password: string }) {
-  const email = input.email.trim().toLowerCase();
-  const res = await signup(email, input.password, input.name);
-  const session: StoredSession = {
-    token: res.accessToken || res.token || crypto.randomUUID(),
-    refreshToken: res.refreshToken,
-    email: res.user?.email || email,
-    name: res.user?.name || input.name,
-    createdAt: new Date().toISOString(),
-  };
-  writeStorage(SESSION_KEY, session);
-  return { account: { name: session.name, email: session.email, passwordHash: '' }, session };
-}
-
-export async function signInAccount(input: { email: string; password: string }) {
-  const email = input.email.trim().toLowerCase();
-  const res = await login(email, input.password);
-  const session: StoredSession = {
-    token: res.accessToken || res.token || crypto.randomUUID(),
-    refreshToken: res.refreshToken,
-    email: res.user?.email || email,
-    name: res.user?.name || '',
-    createdAt: new Date().toISOString(),
-  };
-  writeStorage(SESSION_KEY, session);
-
-  return { account: { name: session.name, email: session.email, passwordHash: '' }, session };
 }
