@@ -6,11 +6,7 @@
     "NODE_ENV": "production"
   },
   "functions": {
-    "api/[[...path]].ts": {
-      "maxDuration": 60,
-      "memory": 512
-    },
-    "serverless.ts": {
+    "api/[[...all]].ts": {
       "maxDuration": 60,
       "memory": 512
     }
