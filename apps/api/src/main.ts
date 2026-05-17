@@ -6,6 +6,8 @@ import { AppModule } from './app.module';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import type { Request, Response, NextFunction } from 'express';
+import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
+
 
 export async function createServer() {
   const expressApp = express();
@@ -30,7 +32,7 @@ export async function createServer() {
   app.enableCors({
     origin: corsOrigins,
     credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
   });
   app.use(helmet());
@@ -59,6 +61,8 @@ export async function createServer() {
       forbidUnknownValues: true,
     }),
   );
+
+  app.useGlobalInterceptors(new TimeoutInterceptor());
   
   // Global error handling middleware
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {

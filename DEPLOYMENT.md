@@ -4,7 +4,7 @@
 
 NoteFlow is a monorepo with separate frontend (Next.js) and backend (NestJS) applications:
 - **Frontend**: `apps/web` → Deployed to Vercel
-- **Backend**: `apps/api` → Deployed to Railway/Render
+- **Backend**: `apps/api` → Deployed to Vercel
 - **Database**: PostgreSQL → Neon/Supabase
 
 ## Quick Start
@@ -89,7 +89,7 @@ git push origin main
 
 ---
 
-## Backend Deployment (Railway)
+## Backend Deployment (Vercel)
 
 ### Setup
 

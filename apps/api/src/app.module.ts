@@ -9,9 +9,10 @@ import { TagsModule } from './tags/tags.module';
 import { ShareModule } from './share/share.module';
 import { InsightsModule } from './insights/insights.module';
 import { EventsGateway } from './events/events.gateway';
+import { HealthModule } from './health/health.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, NotesModule, AiModule, TagsModule, ShareModule, InsightsModule],
+  imports: [PrismaModule, AuthModule, NotesModule, AiModule, TagsModule, ShareModule, InsightsModule, HealthModule],
   controllers: [AppController],
   providers: [AppService, EventsGateway],
 })

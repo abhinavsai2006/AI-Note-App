@@ -67,6 +67,24 @@ async function proxyRequest(req: NextRequest, pathSegments: string[]) {
       cache: 'no-store',
     });
 
+    if (response.status >= 500) {
+      const errorText = await response.text().catch(() => '');
+      console.warn('[Proxy] Upstream server error:', {
+        target: targetUrl,
+        status: response.status,
+      });
+
+      return NextResponse.json(
+        {
+          error: 'Upstream API unavailable',
+          statusCode: 502,
+          upstreamStatus: response.status,
+          details: errorText || response.statusText || 'Backend returned a server error',
+        },
+        { status: 502 }
+      );
+    }
+
     const data = await response.arrayBuffer();
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set('Access-Control-Allow-Origin', '*');

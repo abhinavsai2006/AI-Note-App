@@ -6,9 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prebuild": "prisma generate",
+    "prebuild": "npx prisma generate",
     "build": "nest build",
-    "postinstall": "prisma generate",
+    "postinstall": "npx prisma generate",
     "prestart:prod": "npx prisma migrate deploy || echo 'Prisma migration skipped'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
