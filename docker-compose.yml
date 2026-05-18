@@ -3,6 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
+    container_name: noteflow-postgres
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -11,13 +12,46 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    container_name: noteflow-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: noteflow-api
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/noteflow
+      JWT_SECRET: supersecrettokenkey12345!
+      CORS_ORIGIN: http://localhost:3000
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: noteflow-web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    depends_on:
+      - api
+    restart: unless-stopped
 
 volumes:
   postgres_data:
