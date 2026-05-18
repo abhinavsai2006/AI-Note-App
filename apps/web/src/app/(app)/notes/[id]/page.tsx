@@ -154,7 +154,7 @@ export default function NoteEditorPage() {
       if (session?.token && noteId && noteId !== "new" && !notFound) {
         const record = await withTimeout(
           generateAISummary(session.token, noteId),
-          8000,
+          30000,
           'AI summary request timed out. Please try again.'
         );
 
@@ -215,8 +215,11 @@ export default function NoteEditorPage() {
             8000,
             'Share request timed out. Please try again.'
           );
-          if (resp?.shareUrl) {
-            setShareUrlState(resp.shareUrl);
+          if (resp?.shareId || resp?.shareUrl) {
+            const shareId = resp.shareId || resp.shareUrl.split('/').pop();
+            const origin = typeof window !== "undefined" ? window.location.origin : "";
+            const shareUrl = `${origin}/shared/${shareId}`;
+            setShareUrlState(shareUrl);
             setShareMessage("Share link ready.");
             return;
           }

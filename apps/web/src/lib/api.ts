@@ -67,7 +67,7 @@ async function requestJson(url: string, options: RequestInit = {}, timeoutMs = D
             parsedError = json.message;
           }
         }
-      } catch (_) {
+      } catch {
         // Fallback to plain text if JSON parsing fails
       }
       throw new Error(parsedError || text || `${res.status} ${res.statusText}`);
@@ -214,7 +214,7 @@ export async function generateAISummary(token: string, noteId: string) {
   return requestJson(`${API_BASE}/notes/${noteId}/generate-summary`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
-  });
+  }, 30000);
 }
 
 export async function callAI(prompt: string, token?: string) {
@@ -225,7 +225,7 @@ export async function callAI(prompt: string, token?: string) {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ prompt }),
-  });
+  }, 30000);
 }
 
 export async function shareNote(token: string, noteId: string) {

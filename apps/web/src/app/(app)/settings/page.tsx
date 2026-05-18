@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Moon, Upload, User } from "lucide-react";
+import { CheckCircle2, Upload, User } from "lucide-react";
 import { getSession, updateSessionName } from "@/lib/localAuth";
 import { getStoredAvatar, setStoredAvatar } from "@/lib/localProfile";
 
@@ -81,7 +81,6 @@ export default function SettingsPage() {
         <div className="w-full lg:w-64 flex flex-col gap-2">
           {[
             { id: "profile", label: "Profile", icon: User },
-            { id: "appearance", label: "Appearance", icon: Moon },
           ].map((item, idx) => (
             <button 
               key={item.id} 
