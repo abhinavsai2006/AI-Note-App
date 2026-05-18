@@ -57,7 +57,20 @@ async function requestJson(url: string, options: RequestInit = {}, timeoutMs = D
     const res = await fetch(url, { ...options, signal: controller.signal });
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(text || `${res.status} ${res.statusText}`);
+      let parsedError = "";
+      try {
+        const json = JSON.parse(text);
+        if (json && json.message) {
+          if (Array.isArray(json.message)) {
+            parsedError = json.message.join(", ");
+          } else {
+            parsedError = json.message;
+          }
+        }
+      } catch (_) {
+        // Fallback to plain text if JSON parsing fails
+      }
+      throw new Error(parsedError || text || `${res.status} ${res.statusText}`);
     }
     return res.json();
   } catch (error) {
