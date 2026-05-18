@@ -45,3 +45,4 @@ prod-*.txt
 vercel-*.txt
 signup-response.txt
 temp-payload-*.json
+.env.example
