@@ -1,210 +1,177 @@
 # NoteFlow ✦
 
-A production-grade, collaborative AI-powered notes workspace. NoteFlow delivers a premium SaaS-level experience characterized by a "Glassmorphic 3D" visual identity, high-performance tech stack, and seamless real-time collaborative features.
+[![Vercel Deployment](https://img.shields.io/badge/Deployment-Vercel%20Live-brightgreen?style=for-the-badge&logo=vercel)](https://ai-note-app-taupe.vercel.app)
+[![Tech Stack](https://img.shields.io/badge/Stack-Next.js%2014%20%7C%20NestJS-blue?style=for-the-badge&logo=nextdotjs)](https://github.com/abhinavsai2006/AI-Note-App)
+[![License](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-## 📐 Architecture
+NoteFlow is a production-grade, collaborative AI-powered notes workspace. Engineered with a premium **Glassmorphic 3D** visual identity and powered by a highly optimized serverless monorepo stack, NoteFlow delivers seamless performance, real-time cross-device synchronization, and instant deep AI cognitive processing.
+
+---
+
+## 🎨 Core Features & Highlights
+
+*   **✨ Intelligent Cognitive Summarization**: Generate instant, highly accurate AI summaries, automated action items, and context-aware titles.
+*   **🌐 Instant Public Publishing**: Share clean, read-only notes via custom shareable portals resolving dynamically to your client host.
+*   **⚡ Premium 3D Glassmorphic Interface**: Fully responsive, high-performance UI styled with curated modern design palettes, fluid micro-interactions, and premium glass textures.
+*   **🔄 Robust Client-Side Synchronization**: Engineered with type-safe backend-backed state storage combined with client-side local caching.
+
+---
+
+## 📐 Architecture & System Flow
 
 ```ascii
 +--------------------+       +----------------------+       +-------------------+
 |    Frontend (Web)  |       |    Backend (API)     |       |   Infrastructure  |
-|  Next.js 14 App    |<----->|  NestJS Framework    |<----->|   PostgreSQL DB   |
-|  Tailwind CSS v3   |       |  REST + Socket.io    |       |   Prisma ORM      |
-|  Framer Motion     |       |  BullMQ Job Queue    |<----->|   Redis (Cache)   |
-|  Three.js / R3F    |       +----------+-----------+       +-------------------+
-|  Zustand + ReactQ  |                  |
-+--------------------+                  v
+|  Next.js 14 App    |<------>|  NestJS Framework    |<------>|   PostgreSQL DB   |
+|  Tailwind CSS v3   |       |  REST + JWT Auth     |       |   Prisma ORM      |
+|  Lucide Icons      |       |  Modular Services    |       |   Hosted Database |
+|  Zustand + ReactQ  |       +----------+-----------+       +-------------------+
++--------------------+                  |
+                                        v
                                +------------------+
-                               | OpenRouter / GPT-5.2 |
-                               |   (AI Service)   |
+                               |    OpenRouter    |
+                               |  (Gemini / GPT)  |
                                +------------------+
 ```
 
-## 🛠️ Tech Stack
+---
 
-| Category        | Technology                                | Version      |
-|-----------------|-------------------------------------------|--------------|
-| **Frontend**    | React / Next.js                           | 18 / 14      |
-| **Styling**     | Tailwind CSS                              | v3           |
-| **Animations**  | Framer Motion / React Three Fiber         | Latest       |
-| **Editor**      | TipTap                                    | Latest       |
-| **State**       | Zustand (Client), React Query (Server)    | Latest       |
-| **Backend**     | Node.js / NestJS                          | 10.x         |
-| **Database**    | PostgreSQL / Prisma ORM                   | 15 / 5.x     |
-| **Queue/Cache** | Redis / BullMQ                            | 7.x / 5.x    |
-| **AI**          | OpenRouter (drop-in OpenAI compatible)    | Latest       |
-| **Realtime**    | Socket.io                                 | Latest       |
+## 🛠️ State-of-the-Art Tech Stack
 
-## 🚀 Setup Instructions
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Frontend** | [Next.js 14](https://nextjs.org/) (App Router) | React framework optimized for dynamic routing, SEO, and static generation. |
+| **Styling** | [Tailwind CSS v3](https://tailwindcss.com/) | Curated visual theme customized with smooth glassmorphism utilities. |
+| **Icons** | [Lucide React](https://lucide.dev/) | Premium, lightweight vector micro-icons. |
+| **State Management** | [Zustand](https://github.com/pmndrs/zustand) | Ultra-lightweight, high-performance global store for client-side persistence. |
+| **Backend** | [NestJS](https://nestjs.com/) | Production-grade Node.js framework offering enterprise-grade modular architecture. |
+| **ORM** | [Prisma](https://www.prisma.io/) | Next-generation declarative ORM with full end-to-end type safety. |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) | Highly scalable relational database storage. |
+| **AI Processing** | [OpenRouter AI](https://openrouter.ai/) | High-speed LLM gateway for intelligent text completion and notes summarization. |
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repo-url>
-   cd noteflow
-   ```
+---
 
-2. **Environment Variables**:
-   Copy `.env.example` to `.env` in the root, `apps/api/.env`, and `apps/web/.env.local`
-   ```bash
-   cp .env.example .env
-   cp .env.example apps/api/.env
-   cp .env.example apps/web/.env.local
-   ```
-    *Make sure to provide your `OPENROUTER_API_KEY` in `.env`.*
-   *For production, set `NODE_ENV=production` and configure `CORS_ORIGIN` to your web app domain(s), comma-separated if needed.*
+## 🚀 Setup & Local Execution
 
-3. **Start Infrastructure (PostgreSQL & Redis)**:
-   ```bash
-   docker-compose up -d
-   ```
+Follow these steps to deploy and run NoteFlow locally:
 
-4. **Database Setup**:
-   ```bash
-   cd apps/api
-   npx prisma migrate dev --name init
-   ```
+### 1. Clone the Repository
+```bash
+git clone https://github.com/abhinavsai2006/AI-Note-App.git
+cd AI-Note-App
+```
 
-5. **Start Backend**:
-   ```bash
-   cd apps/api
-   npm run start:dev
-   ```
+### 2. Configure Environment Variables
+Create a local environment configuration file by copying `.env.example` in the root:
+```bash
+cp .env.example .env
+cp .env.example apps/api/.env
+cp .env.example apps/web/.env.local
+```
+> [!NOTE]
+> Make sure to configure your database connection string under `DATABASE_URL` and supply your `OPENROUTER_API_KEY` for AI features.
 
-6. **Start Frontend**:
-   ```bash
-   cd apps/web
-   npm run dev
-   ```
+### 3. Deploy Local Services
+Deploy the PostgreSQL container instance:
+```bash
+docker-compose up -d
+```
 
-7. **Open Browser**:
-   Navigate to `http://localhost:3000`
+### 4. Database Migrations
+Initialize your database schema using Prisma:
+```bash
+cd apps/api
+npx prisma migrate dev --name init
+```
 
-## 📡 API Documentation
+### 5. Launch the Monorepo
+*   **Run Backend:** `npm run start:dev` (inside `apps/api`)
+*   **Run Frontend:** `npm run dev` (inside `apps/web`)
 
-| Method | Endpoint                          | Description                               | Params / Body                     |
-|--------|-----------------------------------|-------------------------------------------|-----------------------------------|
-| POST   | `/api/auth/signup`                | Register a new user                       | `{ name, email, password }`       |
-| POST   | `/api/auth/login`                 | Authenticate user                         | `{ email, password }`             |
-| POST   | `/api/auth/refresh`               | Refresh JWT token                         | Headers: `Authorization` (Refresh)|
-| GET    | `/api/auth/me`                    | Get current user                          | Auth Token                        |
-| GET    | `/api/notes`                      | List user notes                           | `?search=&tag=&sort=&archive=`    |
-| POST   | `/api/notes`                      | Create a new note                         | `{ title, content }`              |
-| GET    | `/api/notes/:id`                  | Get note details                          | Note ID                           |
-| PATCH  | `/api/notes/:id`                  | Update a note                             | `{ title, content, isArchived }`  |
-| DELETE | `/api/notes/:id`                  | Delete a note                             | Note ID                           |
-| POST   | `/api/notes/:id/archive`          | Archive a note                            | Note ID                           |
-| POST   | `/api/notes/:id/restore`          | Restore an archived note                  | Note ID                           |
-| POST   | `/api/notes/:id/generate-summary` | Generate AI summary (async)               | Note ID -> returns `{ jobId }`    |
-| GET    | `/api/notes/:id/summary-status/:jobId` | SSE endpoint for AI generation stream | Note ID, Job ID               |
-| POST   | `/api/notes/:id/share`            | Toggle public sharing                     | Note ID -> returns `{ shareId }`  |
-| GET    | `/api/shared/:shareId`            | Get public note (no auth required)        | Share ID                          |
-| GET    | `/api/tags`                       | List all tags                             | Auth Token                        |
-| POST   | `/api/tags`                       | Create a tag                              | `{ name, color }`                 |
-| GET    | `/api/insights/stats`             | Get aggregate usage stats                 | Auth Token                        |
-| GET    | `/api/insights/weekly-activity`   | Get weekly activity data                  | Auth Token                        |
+Open your browser and navigate to **`http://localhost:3000`** to access your workspace.
 
-## 🎨 Design Decisions
+---
 
-*   **Next.js 14 App Router**: Chosen for its robust routing, server components for SEO (like shared public notes), and structured file system.
-*   **Tailwind CSS + Custom Tokens**: Used for rapid styling, while completely overhauling the default theme to achieve the requested "Glassmorphic 3D Depth" look (deep navy, electric violet, aurora teal).
-*   **Framer Motion & Three.js**: Crucial for delivering the "premium SaaS" feel. R3F powers the 3D orb hero and interactive charts, while Framer Motion handles page transitions and micro-interactions.
-*   **TipTap**: A headless, highly customizable editor that allows us to build a unique Notion-like editing experience without fighting a predefined UI.
-*   **Zustand + React Query**: Separation of concerns where server state (notes, summaries) is handled efficiently by React Query with optimistic updates, while local UI state is managed lightly by Zustand.
-*   **NestJS + Prisma**: Provides a modular, scalable backend architecture with type safety end-to-end. Prisma makes DB interactions declarative and migrations a breeze.
-*   **BullMQ**: Essential for offloading the slow Anthropic API calls to background workers, preventing HTTP blocking.
-*   **Socket.io**: Powers the auto-saving mechanism and presence indicators, debounced for efficiency.
+## 📡 API Reference
 
-## 🤖 AI Integration
+| Endpoint | Method | Description | Request Payload / Params |
+| :--- | :--- | :--- | :--- |
+| `/api/auth/signup` | `POST` | Register a new workspace account | `{ name, email, password }` |
+| `/api/auth/login` | `POST` | Authenticate and obtain JWT token | `{ email, password }` |
+| `/api/notes` | `GET` | Retrieve list of user notes | `Headers: { Authorization: Bearer <Token> }` |
+| `/api/notes` | `POST` | Create a new blank note | `{ title, content }` |
+| `/api/notes/:id` | `PATCH` | Update note title and content | `{ title, content }` |
+| `/api/notes/:id/archive` | `POST` | Toggle archive status of a note | Note ID parameter |
+| `/api/notes/:id/generate-summary`| `POST` | Generate AI summary and key items | Note ID parameter |
+| `/api/notes/:id/share` | `POST` | Enable/Disable public sharing link | Note ID parameter |
+| `/api/shared/:shareId` | `GET` | Access read-only shared note | Share ID parameter (Public) |
 
-NoteFlow uses OpenRouter (OpenAI-compatible) for generating intelligent summaries, extracting action items, and suggesting titles.
+---
 
-Example backend call (POST `/api/ai`):
+## 🤖 Deep AI Integration
 
+NoteFlow natively integrates with OpenRouter for highly performant, server-side content extraction. 
+
+### AI Generation Request Payload
 ```json
 {
-   "model": "openai/gpt-5.2",
-   "messages": [
-      { "role": "user", "content": "Summarize this note and extract action items." }
-   ]
+  "model": "google/gemini-2.5-pro",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Analyze this note content. Return valid JSON with: summary (string), action_items (array of strings), suggested_title (string)."
+    }
+  ]
 }
 ```
 
-The API expects `OPENROUTER_API_KEY` to be set in environment variables. Streaming behavior is supported by OpenRouter, but the current `/api/ai` endpoint uses non-streaming responses for simplicity.
-
-Frontend example (TypeScript fetch) calling your backend proxy:
-
-```ts
-const res = await fetch('/api/ai', {
-   method: 'POST',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify({
-      model: 'openai/gpt-5.2',
-      prompt: 'Summarize this note and extract action items.'
-   }),
-});
-const json = await res.json();
-console.log(json.content);
-```
-
-Sample AI JSON Output:
+### AI Structured Output JSON
 ```json
 {
-  "summary": "This note covers the architectural planning for the NoteFlow application, highlighting the use of Next.js, NestJS, and an AI integration via Anthropic. It emphasizes the importance of a premium glassmorphic UI and async processing.",
+  "summary": "This note covers the architectural planning for the NoteFlow application, highlighting the use of Next.js, NestJS, and an AI integration.",
   "action_items": [
     "Initialize monorepo structure with Next.js and NestJS",
     "Design database schema with Prisma",
-    "Set up BullMQ worker for AI tasks"
+    "Configure client-side router fallback parameters"
   ],
-  "suggested_title": "NoteFlow Architecture Planning",
-  "key_topics": ["Architecture", "Tech Stack", "AI Integration", "UI/UX Design"]
+  "suggested_title": "NoteFlow Architectural Planning"
 }
 ```
 
-## ⚠️ Known Limitations & Future Roadmap
+---
 
-*   **Real-time Collaboration**: Currently optimized for single-user cross-device synchronization. True multi-player editing (CRDTs via Yjs) would be the next step for shared notes.
-*   **Full Text Search Engine**: Uses basic PostgreSQL text search. Could be enhanced with ElasticSearch or Typesense for typos and complex queries.
-*   **More LLM Providers**: Add options for users to bring their own API keys or select different models (OpenAI, Gemini).
+## 🔮 Strategic Future Roadmap
 
-## ✅ CI, Deployment & PDF Test Report
+*   **Multiplayer Real-time Collaboration**: Incorporate Yjs / CRDT algorithms combined with WebSockets for instantaneous collaborative document editing.
+*   **Vector Search Integration**: Implement pgvector or Pinecone to provide fast semantic search queries and similarity matching across user notes.
+*   **Client Key Injection**: Allow professional users to configure custom OpenAI, Gemini, or Anthropic API keys directly inside the workspace settings interface.
 
-This repository includes a GitHub Actions CI that runs API tests, builds the web app, generates an HTML test report, converts it to PDF, and uploads the PDF as an artifact.
+---
 
-To run locally:
+## 📈 Quality Assurance & CI/CD Pipelines
 
+This codebase features automated test pipelines configured via GitHub Actions.
+
+To execute tests and verify type systems locally:
 ```bash
-# API
+# Run API Integration tests
 cd apps/api
 npm install
-npm test -- --json --outputFile=../../artifacts/api-test.json
+npm run test
 
-# Web
+# Compile Frontend Web Bundle
 cd ../web
 npm install
 npm run build
-
-# Generate report (node >= 18 required)
-node .github/scripts/generate-test-report.js
-# Convert to PDF (install wkhtmltopdf locally):
-wkhtmltopdf artifacts/report.html artifacts/report.pdf
 ```
 
-Deploying to Vercel
+---
 
-1. In Vercel, create a new project and point it to this monorepo; set the root to `apps/web`.
-2. Add environment variables in Vercel dashboard:
-   - `OPENROUTER_API_KEY` — your OpenRouter (OpenAI-compatible) API key.
-   - `OPENROUTER_MODEL` — optional model (e.g. `openai/gpt-5.2`).
-3. The included `vercel.json` helps Vercel detect the Next.js app inside `apps/web`.
+## 📦 Production Deployment
 
-Preparing a branch & PR
+The monorepo is fully optimized for cloud execution on **Vercel**:
+1. Create a project pointing to your repository, setting the root directory to `apps/web`.
+2. Configure environment variables (`OPENROUTER_API_KEY`, `JWT_SECRET`, `DATABASE_URL`).
+3. Vercel automatically deploys both serverless Next.js pages and edge-ready API endpoints using the configuration defined in `apps/web/vercel.json`.
 
-I created local edits in this workspace. To push them and open a PR, run:
-
-```bash
-git checkout -b feat/ui-mobile-ai
-git add -A
-git commit -m "UX: mobile sidebar, AI assistant modal, CI report + vercel config"
-git push origin feat/ui-mobile-ai
-# Then open a Pull Request on GitHub (or I can open one if you give me access).
-```
-
+*   **Production Deployment URL:** [https://ai-note-app-taupe.vercel.app](https://ai-note-app-taupe.vercel.app)
